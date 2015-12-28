@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>CUSTOM-Update child nodes versions</actionName>
+            <displayName>Update child nodes versions</displayName>
+            <goals>
+                <goal>versions:update-child-modules</goal>
+                <goal>versions:commit</goal>
+            </goals>
+        </action>
+    </actions>

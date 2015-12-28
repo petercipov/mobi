@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<ruleset name="custom"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
+    <description>Custom rules</description>
+    
+    <rule ref ="rulesets/java/basic.xml" />
+	<rule ref="rulesets/java/unnecessary.xml" />
+	<rule ref ="rulesets/java/unusedcode.xml" >
+		<exclude name="UnusedPrivateMethod" /><!-- makes false positives, see http://sourceforge.net/p/pmd/bugs/1156/ -->
+	</rule>
+    <rule ref ="rulesets/java/imports.xml" />
+	<rule ref ="rulesets/java/braces.xml" />
+	<rule ref ="rulesets/java/finalizers.xml" />
+    <rule ref ="rulesets/java/strings.xml" />
+	<rule ref="rulesets/java/design.xml" >
+		<exclude name="SingularField"/><!-- unusefull restriction -->
+		<exclude name="GodClass"/>
+	</rule>
+  
+    <rule ref="rulesets/java/optimizations.xml">
+        <exclude name="MethodArgumentCouldBeFinal"/> <!-- no meanig for performance http://armoredbarista.blogspot.cz/2012/04/using-final-keyword-on-method.html, final is used to remove complexity -->
+        <exclude name="LocalVariableCouldBeFinal"/>
+        <exclude name="AvoidInstantiatingObjectsInLoops" /> <!-- this is very wierd rule -->
+		<exclude name="UseStringBufferForStringAppends" />
+    </rule>
+    
+</ruleset>
