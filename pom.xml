@@ -13,7 +13,7 @@
 	<modules>
 		<module>deployer</module>
 		<module>images</module>
-		<module>mobi-junit</module>
+		<module>junit</module>
 	</modules>
 	
 	<properties>
