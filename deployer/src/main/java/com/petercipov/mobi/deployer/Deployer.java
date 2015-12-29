@@ -3,6 +3,7 @@ package com.petercipov.mobi.deployer;
 import com.petercipov.mobi.Image;
 import com.petercipov.mobi.ApiHost;
 import com.petercipov.traces.api.Level;
+import com.petercipov.traces.api.NoopTrace;
 import com.petercipov.traces.api.Trace;
 import com.petercipov.traces.api.Trace.Event;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -14,7 +15,6 @@ import com.spotify.docker.client.messages.ProgressMessage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import rx.Observable;
 
 /**
@@ -29,11 +30,6 @@ import rx.Observable;
  * @author pcipov
  */
 public class Deployer {
-	private static final List<String> DEFAULT_VOLUME_BINDINGS = Arrays.asList(
-		"/var/log:/var/log",
-		"/var/run/dockerhost/:/etc/dockerhost",
-		"/var/run:/var/dockerhost/run"
-	);
 	
 	private final ApiHost api;
 	private final List<Container<? extends Image>> deployedContainers;
@@ -45,28 +41,148 @@ public class Deployer {
 		this.deployedContainers = Collections.synchronizedList(new LinkedList<>());
 	}
 	
-	public <T extends Image> Observable<Container<T>> deploy(Trace trace, T image) {
-		return deploy(trace, image, Optional.empty());
+	public static class Builder<T extends Image> {
+		private Trace trace;
+		private final T image;
+		private Optional<String> name;
+		private final ContainerConfig.Builder containerConfig;
+		private final HostConfig.Builder hostConfig;
+
+		public Builder(T image) {
+			this.image = image;
+			this.trace = NoopTrace.INSTANCE;
+			this.name = Optional.empty();
+			this.containerConfig = ContainerConfig.builder();
+			this.hostConfig = HostConfig.builder();
+		}
+		
+		public Builder<T> trace(Trace trace) {
+			this.trace = trace;
+			return this;
+		}
+		
+		public Builder<T> name(String name) {
+			this.name = Optional.of(name);
+			return this;
+		}
+		
+		public Builder<T> volume(String hostPath, String guestPath) {
+			String path = hostPath+":"+guestPath;
+			List<String> volumes = new LinkedList<>();
+			
+			if (this.hostConfig.binds() == null) {
+				volumes.add(path);
+			} else {
+				volumes.addAll(this.hostConfig.binds());
+				volumes.add(path);
+			}
+			
+			this.hostConfig.binds(volumes);
+			return this;
+		}
+		
+		public Builder<T> env(String variable) {
+			List<String> env = new LinkedList<>();
+			
+			if (this.containerConfig.env() == null) {
+				env.add(variable);
+			} else {
+				env.addAll(this.containerConfig.env());
+				env.add(variable);
+			}
+			this.containerConfig.env(env);
+			
+			return this;
+		}
+		
+		public Builder<T> port(String port, int customPort) {
+			if (this.hostConfig.portBindings() == null) {
+				HashMap<String, List<PortBinding>> ports = new HashMap<>();
+				ports.put(port, Arrays.asList(PortBinding.of(null, customPort)));
+				this.hostConfig.portBindings(ports);
+			} else {
+				this.hostConfig.portBindings()
+				.put(port, Arrays.asList(PortBinding.of(null, customPort)));
+			}
+			
+			return this;
+		}
+		
+		public Builder<T> withContainer(Consumer<ContainerConfig.Builder> config) {
+			config.accept(this.containerConfig);
+			return this;
+		}
+
+		public ContainerConfig.Builder containerConfig() {
+			return this.containerConfig;
+		}
+		
+		public Builder<T> withHost(Consumer<HostConfig.Builder> config) {
+			config.accept(this.hostConfig);
+			return this;
+		}
+		
+		public HostConfig.Builder hostConfig() {
+			return this.hostConfig;
+		}
+
+		public Trace trace() {
+			return trace;
+		}
+
+		public T image() {
+			return image;
+		}
+
+		public Optional<String> name() {
+			return name;
+		}
+		
+		private void withDockerHostIpVariable( String host) {
+			List<String> env = this.containerConfig.env();
+			LinkedList<String> list = new LinkedList<>();
+			if (env != null) {
+				list.addAll(env);
+			}
+			list.add("DOCKER_HOST_IP="+host);
+			this.containerConfig.env(list);
+		}
+		
+		private HostConfig withPortsAndVolumes(Trace trace, ApiHost api) {
+			List<String> bindings = new LinkedList<>(api.getDefaultVolumeBindings().orElse(Collections.emptyList()));
+
+			if (this.hostConfig.binds() != null) {
+				bindings.addAll(this.hostConfig.binds());
+			}
+			
+			if (! bindings.isEmpty()) {
+				this.hostConfig.binds(bindings);
+			}
+
+			if (this.hostConfig.portBindings() == null) {
+				this.hostConfig.publishAllPorts(true);
+				trace.event("Deployer: setup container (volumes, enabling all exposed ports)", bindings, this.hostConfig.publishAllPorts());
+			} else {
+				trace.event("Deployer: setup container (volumes, ports)", bindings, this.hostConfig.portBindings());
+			}
+			return this.hostConfig.build();
+		}
+		
+		ContainerConfig build(ApiHost api) {
+			withDockerHostIpVariable(api.getHost());
+			withPortsAndVolumes(trace, api);
+			return this.containerConfig
+				.image(image.toString())
+				.hostConfig(this.hostConfig.build())
+				.build();
+		}
 	}
 	
-	public <T extends Image> Observable<Container<T>> deploy(Trace trace, T image, Optional<PortsMapping> portMapping) {
-		return deploy(trace, image, portMapping, ContainerConfig.builder());
-	}
-	
-	public <T extends Image> Observable<Container<T>> deploy(Trace trace, T image, Optional<PortsMapping> portMapping, ContainerConfig.Builder builder) {
-		return deploy(trace, Optional.empty(), image, portMapping, builder);
-	}
-	
-	public <T extends Image> Observable<Container<T>> deploy(Trace trace, Optional<String> name, T image) {
-		return deploy(trace, name, image, Optional.empty());
-	}
-	
-	public <T extends Image> Observable<Container<T>> deploy(Trace trace, Optional<String> name, T image, Optional<PortsMapping> portMapping) {
-		return deploy(trace, name, image, portMapping, ContainerConfig.builder());
-	}
-	
-	public <T extends Image> Observable<Container<T>> deploy(Trace trace, Optional<String> name, T image, Optional<PortsMapping> portMapping, ContainerConfig.Builder builder) {
+	public <T extends Image> Observable<Container<T>> deploy(Builder<T> deployment) {
 		return Observable.defer(() -> {
+			Trace trace = deployment.trace();
+			T image = deployment.image();
+			ContainerConfig config = deployment.build(api);
 			Event deployEvent = trace.start("Deployer: deploying image", image);
 			return rxdocker.isImagePresent(trace, image)
 				.flatMap(present -> {
@@ -78,13 +194,12 @@ public class Deployer {
 						return rxdocker.pull(trace, image, progress -> logProgress(trace, progress)); 
 					}
 				})
-				.map(imageToDeploy -> createContainerConfig(builder, imageToDeploy, createHostConfig(trace, portMapping)))
-				.flatMap((config) -> rxdocker.createContainer(trace, name, config))
+				.flatMap((xxx) -> rxdocker.createContainer(trace, deployment.name(), config))
 				.flatMap(containerId -> {
 					return rxdocker.startContainer(trace, containerId)
 						.flatMap(xxx -> rxdocker.inspectContainer(trace, containerId))
 						.flatMap(containerInfo -> checkIfRunning(containerInfo, containerId))
-						.flatMap(containerInfo -> remapPorts(containerInfo, image, portMapping))
+						.flatMap(containerInfo -> remapPorts(containerInfo, image, config.hostConfig().portBindings()))
 						.onErrorResumeNext(ex ->  {
 							return containerId == null
 								? Observable.error(ex)
@@ -103,6 +218,10 @@ public class Deployer {
 				.doOnError((th) -> trace.event(Level.ERROR, "Deployer: could not deploy", th))
 				.doOnTerminate(() -> deployEvent.end());
 		});
+	}
+	
+	public <T extends Image> Observable<ContainerInfo> inspectContainer(Trace trace, Container<T> container) {
+		return rxdocker.inspectContainer(trace, container);
 	}
 	
 	public <T extends Image> Observable<Container<T>> killContainer(Trace trace, Container<T> container) {
@@ -140,13 +259,11 @@ public class Deployer {
 		);
 	}
 
-	private Observable<Map<String, Integer>> remapPorts(ContainerInfo info, Image image, Optional<PortsMapping> portMapping) {
+	private Observable<Map<String, Integer>> remapPorts(ContainerInfo info, Image image, Map<String, List<PortBinding>> portBindings) {
 		Map<String, List<PortBinding>> ports = info.networkSettings().ports();
 		Map<String, Integer> remapping = new HashMap<>(1);
 		
-		Collection<String> exposedPorts = portMapping.map(
-			(mapping) -> mapping.getExposedPorts()
-		).orElse(image.getExposedPorts());
+		Iterable<String> exposedPorts = Optional.ofNullable(portBindings).map(bindings -> (Iterable<String>)bindings.keySet()).orElse(image.getExposedPorts());
 		
 		int port;
 		for (String exposedPort : exposedPorts) {
@@ -167,40 +284,6 @@ public class Deployer {
 		}
 		return Observable.just(remapping);
 	}
-	
-	private void withDockerHostIpVariable(ContainerConfig.Builder configBuilder) {
-		List<String> env = configBuilder.env();
-		ArrayList<String> list = new ArrayList<>();
-		if (env != null) {
-			list.addAll(env);
-		}
-		list.add("DOCKER_HOST_IP="+api.getHost());
-		configBuilder.env(list);
-	}
-
-	protected ContainerConfig createContainerConfig(ContainerConfig.Builder builder, Image image, HostConfig hostConfig) {
-		withDockerHostIpVariable(builder);
-		return builder
-			.image(image.toString())
-			.hostConfig(hostConfig)
-			.build();
-	}
-
-	protected HostConfig createHostConfig(Trace trace, Optional<PortsMapping> portsMapping) {
-		List<String> bindings = api.getDefaultVolumeBindings().orElse(DEFAULT_VOLUME_BINDINGS);
-		
-		HostConfig.Builder b = HostConfig.builder()
-			.binds(bindings);
-			
-		if (portsMapping.isPresent()) {
-			b = b.portBindings(portsMapping.get().getPortBindings());
-			trace.event("Deployer: setup container (volumes, ports)", bindings, b.portBindings());
-		} else {
-			b = b.publishAllPorts(true);
-			trace.event("Deployer: setup container (volumes, enabling all exposed ports)", bindings, b.publishAllPorts());
-		}
-		return b.build();
-	}
 
 	public void close(Trace trace) throws IOException {
 		killAllPendingContainers(trace);
@@ -218,7 +301,6 @@ public class Deployer {
 			.flatMap((c) -> this.killContainer(trace, c))
 			.toList().toBlocking().single()
 		;
-		
 	}
 	
 	private void logProgress(Trace trace, ProgressMessage progress) {

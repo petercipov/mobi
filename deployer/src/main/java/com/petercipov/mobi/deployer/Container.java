@@ -2,6 +2,7 @@ package com.petercipov.mobi.deployer;
 
 import com.petercipov.mobi.Image;
 import com.petercipov.traces.api.Trace;
+import com.spotify.docker.client.messages.ContainerInfo;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -52,6 +53,10 @@ public class Container<T extends Image> {
 		if (results.get(0).isOnError()) {
 			throw new IOException("could not close container "+containerId, results.get(0).getThrowable());
 		}
+	}
+	
+	public Observable<ContainerInfo> inspect(Trace trace) {
+		return deployer.inspectContainer(trace, this);
 	}
 	
 	public Observable<Container<T>> kill(Trace trace) {
