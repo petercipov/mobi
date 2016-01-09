@@ -36,7 +36,6 @@ public abstract class Deployment <I extends Image, R> {
         this.name = Optional.of(name);
         return this;
     }
-	
 	/**
 	 * Adds volume bindings to container as string in format /host/path:/container/path
 	 * @since 1.14
@@ -210,5 +209,84 @@ public abstract class Deployment <I extends Image, R> {
 	 */
 	public abstract Deployment<I, R> setWorkDir(String workDir);
 
+	/**
+	 * Sets path to cgroup
+	 * @since 1.18
+	 * @param parent Path to cgroups under which the cgroup for the container will be created. If the path is not absolute, the path is considered to be relative to the cgroups path of the init process. Cgroups will be created if they do not already exist
+	 * @return 
+	 */
+	public abstract Deployment<I, R> setCgroupParent(String parent);
+	
+	/**
+	 * Adds DNS for fontainer
+	 * @since 1.14
+	 * @param dns A list of DNS servers for the container to use
+	 * @return 
+	 */
+	public abstract Deployment<I, R> addDns(String ... dns);
+	
+	/**
+	 * Adds DNS search domains
+	 * @since 1.15
+	 * @param dns A list of DNS servers for the container to use.
+	 * @return 
+	 */
+	public abstract Deployment<I, R> addDnsSearch(String ... dns);
+	
+	/**
+	 * Adds extra hosts co container /etc/hosts
+	 * @since 1.15
+	 * @param hosts  A list of hostnames/IP mappings to add to the container’s /etc/hosts file. Specified in the form ["hostname:IP"]
+	 * @return 
+	 */
+	public abstract Deployment<I, R> addExtraHosts(String ... hosts);
+	
+	/**
+	 * Adds links to other containers
+	 * @since 1.14
+	 * @param links A list of links for the container. Each link entry should be in the form of container_name:alias
+	 * @return 
+	 */
+	public abstract Deployment<I, R> addLinks(String ... links);
+	
+	/**
+	 * Sets LXC specific configurations. These configurations only work when using the lxc execution driver.
+	 * @since 1.14
+	 * @param key
+	 * @param value
+	 * @return 
+	 */
+	public abstract Deployment<I, R> addLxcParameter(String key, String value);
+	
+	/**
+	 * Sets the networking mode for the container
+	 * @since 1.15
+	 * @param mode Supported values are: bridge, host, and container:name|id
+	 * @return 
+	 */
+	public abstract Deployment<I, R> setNetworkMode(String mode);
+	
+	/**
+	 * Gives the container full access to the host.
+	 * @since 1.14
+	 * @param privileged
+	 * @return 
+	 */
+	public abstract Deployment<I, R> setPrivileged(boolean privileged);
+	/**
+	 * @since 1.15
+	 * @param opts  string value to customize labels for MLS systems, such as SELinux.
+	 * @return 
+	 */
+	public abstract Deployment<I, R> addSecurityOpt(String ... opts);
+	
+	/**
+	 * Adds volume from an other container
+	 * @since 1.14
+	 * @param volumes volume to inherit from another container. Specified in the form container name:ro|rw
+	 * @return 
+	 */
+	public abstract Deployment<I, R> addVolumeFrom(String ... volumes);
+	
     public abstract R build();
 }

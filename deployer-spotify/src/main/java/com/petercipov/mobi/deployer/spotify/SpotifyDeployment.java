@@ -216,4 +216,100 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 		}
 		return this;
 	}
+
+	@Override
+	public Deployment<I, ContainerConfig> setCgroupParent(String parent) {
+		this.hostConfig.cgroupParent(parent);
+		return this;
+	}
+
+	@Override
+	public Deployment<I, ContainerConfig> addDns(String... dns) {
+		LinkedList<String> list = new LinkedList<>();
+		list.addAll(Arrays.asList(dns));
+		if (this.hostConfig.dns() != null) {
+			list.addAll(this.hostConfig.dns());
+		}
+		this.hostConfig.dns(list);
+		return this;
+	}
+
+	@Override
+	public Deployment<I, ContainerConfig> addDnsSearch(String... dns) {
+		LinkedList<String> list = new LinkedList<>();
+		list.addAll(Arrays.asList(dns));
+		if (this.hostConfig.dnsSearch() != null) {
+			list.addAll(this.hostConfig.dnsSearch());
+		}
+		this.hostConfig.dnsSearch(list);
+		return this;
+	}
+
+	@Override
+	public Deployment<I, ContainerConfig> addExtraHosts(String... hosts) {
+		LinkedList<String> list = new LinkedList<>();
+		list.addAll(Arrays.asList(hosts));
+		if (this.hostConfig.extraHosts() != null) {
+			list.addAll(this.hostConfig.extraHosts());
+		}
+		this.hostConfig.extraHosts(list);
+		return this;
+	}
+
+	@Override
+	public Deployment<I, ContainerConfig> addLinks(String... links) {
+		LinkedList<String> list = new LinkedList<>();
+		list.addAll(Arrays.asList(links));
+		if (this.hostConfig.links() != null) {
+			list.addAll(this.hostConfig.links());
+		}
+		this.hostConfig.links(list);
+		return this;
+	}
+
+	@Override
+	public Deployment<I, ContainerConfig> addLxcParameter(String key, String value) {
+		LinkedList<HostConfig.LxcConfParameter> list = new LinkedList<>();
+		list.add(new HostConfig.LxcConfParameter(key, value));
+		
+		if (this.hostConfig.lxcConf()!= null) {
+			list.addAll(this.hostConfig.lxcConf());
+		}
+		this.hostConfig.lxcConf(list);
+		return this;
+	}
+
+	@Override
+	public Deployment<I, ContainerConfig> setNetworkMode(String mode) {
+		this.hostConfig.networkMode(mode);
+		return this;
+	}
+
+	@Override
+	public Deployment<I, ContainerConfig> setPrivileged(boolean privileged) {
+		this.hostConfig.privileged(privileged);
+		return this;
+	}
+
+	@Override
+	public Deployment<I, ContainerConfig> addSecurityOpt(String... opts) {
+		LinkedList<String> list = new LinkedList<>();
+		list.addAll(Arrays.asList(opts));
+		if (this.hostConfig.securityOpt()!= null) {
+			list.addAll(this.hostConfig.securityOpt());
+		}
+		this.hostConfig.securityOpt(list);
+		return this;
+	}
+
+	@Override
+	public Deployment<I, ContainerConfig> addVolumeFrom(String... volumes) {
+		LinkedList<String> list = new LinkedList<>();
+		list.addAll(Arrays.asList(volumes));
+		if (this.hostConfig.volumesFrom()!= null) {
+			list.addAll(this.hostConfig.volumesFrom());
+		}
+		this.hostConfig.volumesFrom(list);
+		return this;
+	}
 }
