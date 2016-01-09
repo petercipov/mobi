@@ -28,10 +28,9 @@ public class Deployer<R> {
 		this.deployedContainers = Collections.synchronizedList(new LinkedList<>());
 	}
 	
-	public <I extends Image> Observable<Container<I>> deploy(Deployment<I, R> deployment) {
+	public <I extends Image> Observable<Container<I>> deploy(Trace trace, Deployment<I, R> deployment) {
 		return Observable.defer(() -> {
 			setDefaults(deployment);
-			Trace trace = deployment.trace();
 			I image = deployment.image();
 			Event deployEvent = trace.start("Deployer: deploying image", image);
 			return rxdocker.isPresent(trace, image)
@@ -44,7 +43,7 @@ public class Deployer<R> {
 						return rxdocker.pull(trace, image); 
 					}
 				})
-				.flatMap((xxx) -> rxdocker.createContainer(deployment))
+				.flatMap((xxx) -> rxdocker.createContainer(trace, deployment))
 				.flatMap(containerId -> rxdocker.startContainer(trace, containerId))
                 .flatMap(containerId -> 
                     rxdocker.isContainerRunning(trace, containerId)
@@ -79,10 +78,10 @@ public class Deployer<R> {
 	protected void setDefaults(Deployment<?, ?> deployment) {
 		api
 			.getDefaultVolumeBindings()
-			.ifPresent(deployment::volume);
+			.ifPresent(deployment::addVolumes);
 		
 		if (! deployment.portsSpecified()) {
-			deployment.allPortsPublished(true);
+			deployment.setPublishAllPorts(true);
 		}
 	}
 	

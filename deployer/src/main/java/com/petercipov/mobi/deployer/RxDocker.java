@@ -15,7 +15,7 @@ public interface RxDocker <R, B extends Deployment<?,R>>{
     Observable<Image> pull(Trace trace, Image image);
     Observable<Boolean> isPresent(Trace trace, Image image);
     
-    Observable<String> createContainer(B builder);
+    Observable<String> createContainer(Trace trace, B builder);
     Observable<String> startContainer(Trace trace, String containerId);
     Observable<String> killContainer(Trace trace, String containerId);
     Observable<String> stopContainer(Trace trace, String containerId, int secondsBeforeFail);

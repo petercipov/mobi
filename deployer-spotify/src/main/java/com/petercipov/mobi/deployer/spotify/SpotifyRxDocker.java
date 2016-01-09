@@ -131,11 +131,10 @@ public class SpotifyRxDocker implements RxDocker<ContainerConfig, SpotifyDeploym
     }
 
     @Override
-    public Observable<String> createContainer(SpotifyDeployment builder) {
+    public Observable<String> createContainer(Trace trace, SpotifyDeployment builder) {
         return Observable.create((Subscriber<? super String> subscriber) -> {
             Optional<String> name = builder.name();
             ContainerConfig containerConfig = builder.build();
-            Trace trace = builder.trace();
 			Event creating = trace.start("RxDocker: creating container from image ", containerConfig.image());
 			final DockerClient client;
 			final String containerId;

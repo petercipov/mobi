@@ -118,8 +118,8 @@ public class MobiRule <T extends Images> extends ExternalResource {
 			return this;
 		}
 		
-		public Observable<Container<I>> deploy() {
-			return this.deployer.deploy(builder);
+		public Observable<Container<I>> deploy(Trace trace) {
+			return this.deployer.deploy(trace, builder);
 		}
 	}
 }

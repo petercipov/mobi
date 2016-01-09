@@ -23,10 +23,9 @@ public class CassandraIT {
 		Container<CassandraImage> first = mobi
 			.image(images -> images.cassandra().forTag("3.0.2"))
 			.with(setup -> setup
-				.trace(trace)
-				.name("firstNode-deploy")
+				.setName("firstNode-deploy")
 			)
-			.deploy()
+			.deploy(trace)
 			.toBlocking().toFuture().get(1, TimeUnit.MINUTES)
 		;
 		
@@ -37,12 +36,11 @@ public class CassandraIT {
 		Container<CassandraImage> second = mobi
 			.image(images -> images.cassandra().forTag("3.0.2"))
 			.with(setup -> setup
-				.trace(trace)
-				.name("second-node")
-				.volume("/var/log", "/var/log")
-				.env("CASSANDRA_SEEDS="+ipAddress)
+				.setName("second-node")
+				.addVolume("/var/log", "/var/log")
+				.addEnv("CASSANDRA_SEEDS="+ipAddress)
 			)
-			.deploy()
+			.deploy(trace)
 			.toBlocking().toFuture().get(1, TimeUnit.MINUTES);
 	}
 }
