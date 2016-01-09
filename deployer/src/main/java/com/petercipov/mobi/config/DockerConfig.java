@@ -2,7 +2,6 @@ package com.petercipov.mobi.config;
 
 import com.petercipov.mobi.ExplicitTag;
 import com.petercipov.mobi.Registry;
-import com.petercipov.mobi.ApiHost;
 import com.google.common.collect.Iterables;
 import java.util.List;
 import java.util.Set;

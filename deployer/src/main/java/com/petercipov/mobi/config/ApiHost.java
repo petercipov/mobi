@@ -1,6 +1,5 @@
-package com.petercipov.mobi;
+package com.petercipov.mobi.config;
 
-import com.spotify.docker.client.DefaultDockerClient;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -24,8 +23,14 @@ public abstract class ApiHost {
 	}
 	
 	public abstract String getHost();
+	
+	public interface Builder<T> {
+		T build(HttpRestApiHost host);
+		T build(HttpsRestApiHost host);
+		T build(UnixRestApiHost host);
+	}
 
-	public abstract DefaultDockerClient.Builder setupBuilder(DefaultDockerClient.Builder builder);
+	public abstract <T> T setupBuilder(Builder<T> b);
 
 	public Optional<List<String>> getDefaultVolumeBindings() {
 		return defaultVolumeBindings;

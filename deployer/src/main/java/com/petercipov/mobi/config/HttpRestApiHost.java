@@ -1,7 +1,5 @@
 package com.petercipov.mobi.config;
 
-import com.petercipov.mobi.ApiHost;
-import com.spotify.docker.client.DefaultDockerClient;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,10 +34,9 @@ public class HttpRestApiHost extends ApiHost {
 	public String toString() {
 		return "HttpRestApiHost(" + "id=" + getId() + ", host=" + host + ", port=" + port + ", volumeBindings=" + getDefaultVolumeBindings() + ')';
 	}
-
+	
 	@Override
-	public DefaultDockerClient.Builder setupBuilder(DefaultDockerClient.Builder builder) {
-		builder.uri(getUri());
-		return builder;
+	public <T> T setupBuilder(Builder<T> b) {
+		return b.build(this);
 	}
 }

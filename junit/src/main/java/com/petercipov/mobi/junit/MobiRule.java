@@ -1,6 +1,6 @@
 package com.petercipov.mobi.junit;
 
-import com.petercipov.mobi.ApiHost;
+import com.petercipov.mobi.config.ApiHost;
 import com.petercipov.mobi.ExplicitTag;
 import com.petercipov.mobi.Image;
 import com.petercipov.mobi.Images;
@@ -8,12 +8,14 @@ import com.petercipov.mobi.Registry;
 import com.petercipov.mobi.config.DockerConfig;
 import com.petercipov.mobi.deployer.Container;
 import com.petercipov.mobi.deployer.Deployer;
-import com.petercipov.mobi.deployer.RxDocker;
+import com.petercipov.mobi.deployer.Deployment;
+import com.petercipov.mobi.deployer.spotify.SpotifyClientBuilder;
+import com.petercipov.mobi.deployer.spotify.SpotifyDeployment;
+import com.petercipov.mobi.deployer.spotify.SpotifyRxDocker;
 import com.petercipov.traces.api.Level;
 import com.petercipov.traces.api.NoopTrace;
 import com.petercipov.traces.api.Trace;
 import com.petercipov.traces.api.Trace.Event;
-import com.spotify.docker.client.DefaultDockerClient;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -25,21 +27,21 @@ import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
 public class MobiRule <T extends Images> extends ExternalResource {
-	private final DefaultDockerClient.Builder clientBuilder;
+	private final SpotifyClientBuilder clientBuilder;
 	private final DockerConfig dockerConfig;
 	private final Scheduler scheduler;
 	private final ConfigReader reader;
 	private final T images;
 
 	private Deployer deployer;
-	private RxDocker rxDocker;
+	private SpotifyRxDocker rxDocker;
 	private final Supplier<Trace> traceSupplier;
 	
 	public MobiRule(BiFunction<? super Registry, List<ExplicitTag>, T> imageFactory) {
-		this(imageFactory, Schedulers.computation(), DefaultDockerClient.builder(), () -> NoopTrace.INSTANCE);
+		this(imageFactory, Schedulers.computation(), new SpotifyClientBuilder(), () -> NoopTrace.INSTANCE);
 	}
 	
-	public MobiRule(BiFunction<? super Registry, List<ExplicitTag>, T> imageFactory, Scheduler scheduler, DefaultDockerClient.Builder clientBuilder, Supplier<Trace> traceSupplier) {
+	public MobiRule(BiFunction<? super Registry, List<ExplicitTag>, T> imageFactory, Scheduler scheduler, SpotifyClientBuilder clientBuilder, Supplier<Trace> traceSupplier) {
 		this.reader =  new ConfigReader();
 		this.scheduler = scheduler;
 		this.clientBuilder = clientBuilder;
@@ -60,7 +62,7 @@ public class MobiRule <T extends Images> extends ExternalResource {
 	@Override
 	protected void before() throws Throwable {
 		ApiHost api = this.dockerConfig.getRandomApiHost();
-		this.rxDocker = new RxDocker(api.setupBuilder(this.clientBuilder), this.scheduler);
+		this.rxDocker = new SpotifyRxDocker(api.setupBuilder(clientBuilder), this.scheduler);
 		this.deployer = new Deployer(api, this.rxDocker);
 	}
 
@@ -92,31 +94,31 @@ public class MobiRule <T extends Images> extends ExternalResource {
 		return images;
 	}
 	
-	public <K extends Image> MobiWork<K> image(Function<T, K> imageChooser) {
-		K image = imageChooser.apply(images);
-		return new MobiWork<>(deployer, new Deployer.Builder<K>(image));
+	public <I extends Image> MobiWork<I> image(Function<T, I> imageChooser) {
+		I image = imageChooser.apply(images);
+		return new MobiWork<>(deployer, new SpotifyDeployment<I>(image));
 	}
 	
-	public RxDocker docker() {
+	public SpotifyRxDocker docker() {
 		return rxDocker;
 	}
 	
-	public static class MobiWork<T extends Image> {
+	public static class MobiWork<I extends Image> {
 
 		private final Deployer deployer;
-		private final Deployer.Builder<T> builder;
+		private final Deployment<I, ?> builder;
 
-		public MobiWork(Deployer deployer, Deployer.Builder<T> builder) {
+		public MobiWork(Deployer deployer, Deployment<I, ?> deployment) {
 			this.deployer = deployer;
-			this.builder = builder;
+			this.builder = deployment;
 		}
 		
-		public MobiWork<T> with(Consumer<Deployer.Builder<T>> b) {
+		public MobiWork<I> with(Consumer<Deployment<I, ?>> b) {
 			b.accept(builder);
 			return this;
 		}
 		
-		public Observable<Container<T>> deploy() {
+		public Observable<Container<I>> deploy() {
 			return this.deployer.deploy(builder);
 		}
 	}

@@ -30,7 +30,7 @@ public class CassandraIT {
 			.toBlocking().toFuture().get(1, TimeUnit.MINUTES)
 		;
 		
-		String ipAddress = first.inspect(trace)
+		String ipAddress = mobi.docker().inspectContainer(trace, first.getContainerId())
 			.toBlocking().toFuture().get(1, TimeUnit.MINUTES)
 			.networkSettings().ipAddress();
 		

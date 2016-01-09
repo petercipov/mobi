@@ -13,11 +13,10 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.13</version>
 		</dependency>
 		<dependency>
 			<groupId>com.petercipov</groupId>
-			<artifactId>mobi-deployer</artifactId>
+			<artifactId>mobi-deployer-spotify</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -26,4 +25,17 @@
 			<version>4.12</version>
 		</dependency>
 	</dependencies>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 </project>

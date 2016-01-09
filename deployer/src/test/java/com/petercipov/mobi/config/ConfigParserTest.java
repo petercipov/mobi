@@ -3,7 +3,6 @@ package com.petercipov.mobi.config;
 import com.petercipov.mobi.ExplicitTag;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.petercipov.mobi.ApiHost;
 import com.petercipov.mobi.Registry;
 import com.petercipov.mobi.config.ConfigParser.ConfKey;
 import com.petercipov.mobi.config.ConfigParser.ConfigParseException;

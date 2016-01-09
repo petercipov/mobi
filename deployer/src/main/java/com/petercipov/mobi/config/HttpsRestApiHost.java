@@ -1,10 +1,5 @@
 package com.petercipov.mobi.config;
 
-import com.petercipov.mobi.ApiHost;
-import com.spotify.docker.client.DefaultDockerClient;
-import com.spotify.docker.client.DockerCertificateException;
-import com.spotify.docker.client.DockerCertificates;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,16 +35,10 @@ public class HttpsRestApiHost extends ApiHost {
 	public String getUri() {
 		return "https://"+ this.getHost() + ":" + this.getPort();
 	}
-
+	
 	@Override
-	public DefaultDockerClient.Builder setupBuilder(DefaultDockerClient.Builder builder) {
-		builder.uri(getUri());
-		try {
-			builder.dockerCertificates(new DockerCertificates(Paths.get(this.certPath)));			
-		} catch(DockerCertificateException ex) {
-			throw new IllegalArgumentException("Certificates could not be resolved", ex);
-		}
-		return builder;
+	public <T> T setupBuilder(Builder<T> b) {
+		return b.build(this);
 	}
 	
 	@Override
