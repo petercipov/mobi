@@ -24,8 +24,6 @@ public abstract class Deployment <I extends Image, R> {
 		return name;
 	}
     
-	public abstract boolean portsSpecified();
-
 	/**
 	 * Sets container name
 	 * @since 1.14
@@ -75,7 +73,7 @@ public abstract class Deployment <I extends Image, R> {
 	 * @param customPort - remapping port
 	 * @return 
 	 */
-    public abstract Deployment<I, R> addPort(String port, int customPort);
+    public abstract Deployment<I, R> addPortMapping(String port, int customPort);
 	
 	/**
 	 * Publishes all exposed ports if is set to true
@@ -84,6 +82,13 @@ public abstract class Deployment <I extends Image, R> {
 	 * @return 
 	 */
 	public abstract Deployment<I, R> setPublishAllPorts(boolean publish);
+	
+	/**
+	 * Publishes all exposed ports
+	 * @since 1.14
+	 * @return 
+	 */
+	public abstract Deployment<I, R> publishAllPorts();
 	
 	/**
 	 * Runs the command when starting the container

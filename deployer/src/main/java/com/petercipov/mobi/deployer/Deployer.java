@@ -79,10 +79,6 @@ public class Deployer<R> {
 		api
 			.getDefaultVolumeBindings()
 			.ifPresent(deployment::addVolumes);
-		
-		if (! deployment.portsSpecified()) {
-			deployment.setPublishAllPorts(true);
-		}
 	}
 	
 	public <T extends Image> Observable<Container<T>> killContainer(Trace trace, Container<T> container) {

@@ -23,6 +23,7 @@ public class CassandraIT {
 		Container<CassandraImage> first = mobi
 			.image(images -> images.cassandra().forTag("3.0.2"))
 			.with(setup -> setup
+				.publishAllPorts()
 				.setName("firstNode-deploy")
 			)
 			.deploy(trace)
@@ -36,6 +37,7 @@ public class CassandraIT {
 		Container<CassandraImage> second = mobi
 			.image(images -> images.cassandra().forTag("3.0.2"))
 			.with(setup -> setup
+				.publishAllPorts()
 				.setName("second-node")
 				.addVolume("/var/log", "/var/log")
 				.addEnv("CASSANDRA_SEEDS="+ipAddress)

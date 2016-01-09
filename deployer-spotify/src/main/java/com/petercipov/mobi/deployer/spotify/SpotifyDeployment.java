@@ -66,7 +66,7 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 	}
 
     @Override
-    public Deployment<I, ContainerConfig> addPort(String port, int customPort) {
+    public Deployment<I, ContainerConfig> addPortMapping(String port, int customPort) {
         if (this.hostConfig.portBindings() == null) {
             HashMap<String, List<PortBinding>> ports = new HashMap<>();
             ports.put(port, Arrays.asList(PortBinding.of(null, customPort)));
@@ -79,12 +79,6 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
         return this;
     }
 	
-	@Override
-	public boolean portsSpecified() {
-		return this.hostConfig.portBindings() == null 
-			|| this.hostConfig.portBindings().isEmpty();
-	}
-		
     @Override
 	public ContainerConfig build() {
         return this.containerConfig
@@ -311,5 +305,10 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 		}
 		this.hostConfig.volumesFrom(list);
 		return this;
+	}
+
+	@Override
+	public Deployment<I, ContainerConfig> publishAllPorts() {
+		return setPublishAllPorts(true);
 	}
 }
