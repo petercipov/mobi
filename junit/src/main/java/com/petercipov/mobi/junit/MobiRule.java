@@ -8,9 +8,9 @@ import com.petercipov.mobi.Registry;
 import com.petercipov.mobi.config.DockerConfig;
 import com.petercipov.mobi.deployer.Container;
 import com.petercipov.mobi.deployer.Deployer;
-import com.petercipov.mobi.deployer.Deployment;
+import com.petercipov.mobi.deployer.Options;
 import com.petercipov.mobi.deployer.spotify.SpotifyClientBuilder;
-import com.petercipov.mobi.deployer.spotify.SpotifyDeployment;
+import com.petercipov.mobi.deployer.spotify.SpotifyOptions;
 import com.petercipov.mobi.deployer.spotify.SpotifyRxDocker;
 import com.petercipov.traces.api.Level;
 import com.petercipov.traces.api.NoopTrace;
@@ -96,7 +96,7 @@ public class MobiRule <T extends Images> extends ExternalResource {
 	
 	public <I extends Image> MobiWork<I> image(Function<T, I> imageChooser) {
 		I image = imageChooser.apply(images);
-		return new MobiWork<>(deployer, new SpotifyDeployment<I>(image));
+		return new MobiWork<>(deployer, image, new SpotifyOptions());
 	}
 	
 	public SpotifyRxDocker docker() {
@@ -106,20 +106,22 @@ public class MobiRule <T extends Images> extends ExternalResource {
 	public static class MobiWork<I extends Image> {
 
 		private final Deployer deployer;
-		private final Deployment<I, ?> builder;
+		private final Options options;
+		private final I image;
 
-		public MobiWork(Deployer deployer, Deployment<I, ?> deployment) {
+		public MobiWork(Deployer deployer, I image, Options deployment) {
 			this.deployer = deployer;
-			this.builder = deployment;
+			this.options = deployment;
+			this.image = image;
 		}
 		
-		public MobiWork<I> with(Consumer<Deployment<I, ?>> b) {
-			b.accept(builder);
+		public MobiWork<I> with(Consumer<Options> b) {
+			b.accept(options);
 			return this;
 		}
 		
 		public Observable<Container<I>> deploy(Trace trace) {
-			return this.deployer.deploy(trace, builder);
+			return this.deployer.deploy(trace, image, options);
 		}
 	}
 }

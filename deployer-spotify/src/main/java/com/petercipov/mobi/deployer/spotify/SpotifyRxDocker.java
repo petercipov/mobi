@@ -25,7 +25,7 @@ import com.petercipov.mobi.deployer.RxDocker;
  *
  * @author Peter Cipov
  */
-public class SpotifyRxDocker implements RxDocker<ContainerConfig, SpotifyDeployment<? extends Image>>{
+public class SpotifyRxDocker implements RxDocker<SpotifyOptions>{
     
     private final DefaultDockerClient.Builder clientBuilder;
 	private final Scheduler scheduler;
@@ -131,10 +131,10 @@ public class SpotifyRxDocker implements RxDocker<ContainerConfig, SpotifyDeploym
     }
 
     @Override
-    public Observable<String> createContainer(Trace trace, SpotifyDeployment builder) {
+    public Observable<String> createContainer(Trace trace, Image image, SpotifyOptions builder) {
         return Observable.create((Subscriber<? super String> subscriber) -> {
             Optional<String> name = builder.name();
-            ContainerConfig containerConfig = builder.build();
+            ContainerConfig containerConfig = builder.buildForImage(image);
 			Event creating = trace.start("RxDocker: creating container from image ", containerConfig.image());
 			final DockerClient client;
 			final String containerId;

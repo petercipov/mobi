@@ -2,7 +2,7 @@ package com.petercipov.mobi.deployer.spotify;
 
 import com.google.common.collect.Lists;
 import com.petercipov.mobi.Image;
-import com.petercipov.mobi.deployer.Deployment;
+import com.petercipov.mobi.deployer.Options;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.PortBinding;
@@ -17,24 +17,23 @@ import java.util.List;
  *
  * @author Peter Cipov
  */
-public class SpotifyDeployment <I extends Image> extends Deployment<I, ContainerConfig> {
+public class SpotifyOptions extends Options {
     
     private final ContainerConfig.Builder containerConfig;
 	private final HostConfig.Builder hostConfig;
 
-    public SpotifyDeployment(I image) {
-        super(image);
+    public SpotifyOptions() {
         this.containerConfig = ContainerConfig.builder();
 		this.hostConfig = HostConfig.builder();
     }
 
     @Override
-    public Deployment<I, ContainerConfig> addVolume(String hostPath, String guestPath) {
+    public Options addVolume(String hostPath, String guestPath) {
         return addVolumes(Arrays.asList(hostPath+":"+guestPath));
     }
 
 	@Override
-	public Deployment<I, ContainerConfig> addVolumes(Iterable<String> volumeBindings) {
+	public Options addVolumes(Iterable<String> volumeBindings) {
 		List<String> volumes = Lists.newLinkedList(volumeBindings);
 		if (this.hostConfig.binds() != null) {
             volumes.addAll(this.hostConfig.binds());
@@ -45,7 +44,7 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 	}
 
     @Override
-    public Deployment<I, ContainerConfig> addEnv(String variable) {
+    public Options addEnv(String variable) {
         List<String> env = new LinkedList<>();
 		
         if (this.containerConfig.env() == null) {
@@ -60,13 +59,13 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 	
 	
 	@Override
-	public Deployment<I, ContainerConfig> setPublishAllPorts(boolean enabled) {
+	public Options setPublishAllPorts(boolean enabled) {
 		this.hostConfig.publishAllPorts(enabled);
 		return this;
 	}
 
     @Override
-    public Deployment<I, ContainerConfig> addPortMapping(String port, int customPort) {
+    public Options addPortMapping(String port, int customPort) {
         if (this.hostConfig.portBindings() == null) {
             HashMap<String, List<PortBinding>> ports = new HashMap<>();
             ports.put(port, Arrays.asList(PortBinding.of(null, customPort)));
@@ -79,8 +78,7 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
         return this;
     }
 	
-    @Override
-	public ContainerConfig build() {
+	public ContainerConfig buildForImage(Image image) {
         return this.containerConfig
             .image(image.toString())
             .hostConfig(this.hostConfig.build())
@@ -88,49 +86,49 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
     }
 
 	@Override
-	public Deployment<I, ContainerConfig> setWorkDir(String workDir) {
+	public Options setWorkDir(String workDir) {
 		this.containerConfig.workingDir(workDir);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setUser(String user) {
+	public Options setUser(String user) {
 		this.containerConfig.user(user);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setCmd(String ... cmd) {
+	public Options setCmd(String ... cmd) {
 		this.containerConfig.cmd(cmd);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setCpuQuota(long quota) {
+	public Options setCpuQuota(long quota) {
 		this.containerConfig.cpuQuota(quota);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setCpuShares(long shares) {
+	public Options setCpuShares(long shares) {
 		this.containerConfig.cpuShares(shares);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setDomainName(String name) {
+	public Options setDomainName(String name) {
 		this.containerConfig.domainname(name);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setEntryPoint(String... entry) {
+	public Options setEntryPoint(String... entry) {
 		this.containerConfig.entrypoint(entry);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> addExposedPort(String port) {
+	public Options addExposedPort(String port) {
 		HashSet<String> ports = new HashSet<>();
 		ports.add(port);
 		
@@ -143,13 +141,13 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setHostName(String hostName) {
+	public Options setHostName(String hostName) {
 		this.containerConfig.hostname(hostName);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> addLabel(String key, String value) {
+	public Options addLabel(String key, String value) {
 		HashMap<String, String> labels = new HashMap<>();
 		labels.put(key, value);
 		if (this.containerConfig.labels() != null) {
@@ -160,48 +158,48 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setMacAdress(String mac) {
+	public Options setMacAdress(String mac) {
 		this.containerConfig.macAddress(mac);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setMemory(long memory) {
+	public Options setMemory(long memory) {
 		this.containerConfig.memory(memory);
 		return this;
 	}
 	
 	@Override
-	public Deployment<I, ContainerConfig> setNetworkDisabled(boolean disabled) {
+	public Options setNetworkDisabled(boolean disabled) {
 		this.containerConfig.networkDisabled(disabled);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setOpenStdIn(boolean open) {
+	public Options setOpenStdIn(boolean open) {
 		this.containerConfig.openStdin(open);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setStdInOnce(boolean once) {
+	public Options setStdInOnce(boolean once) {
 		this.containerConfig.stdinOnce(once);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setTty(boolean enabled) {
+	public Options setTty(boolean enabled) {
 		this.containerConfig.tty(enabled);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> addEnv(String name, String value) {
+	public Options addEnv(String name, String value) {
 		return addEnv(name.trim()+"="+value.trim());
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setMemory(long memory, long swap) {
+	public Options setMemory(long memory, long swap) {
 		this.containerConfig.memory(memory);
 		if (swap < 0) {
 			this.containerConfig.memorySwap(-1l);
@@ -212,13 +210,13 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setCgroupParent(String parent) {
+	public Options setCgroupParent(String parent) {
 		this.hostConfig.cgroupParent(parent);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> addDns(String... dns) {
+	public Options addDns(String... dns) {
 		LinkedList<String> list = new LinkedList<>();
 		list.addAll(Arrays.asList(dns));
 		if (this.hostConfig.dns() != null) {
@@ -229,7 +227,7 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> addDnsSearch(String... dns) {
+	public Options addDnsSearch(String... dns) {
 		LinkedList<String> list = new LinkedList<>();
 		list.addAll(Arrays.asList(dns));
 		if (this.hostConfig.dnsSearch() != null) {
@@ -240,7 +238,7 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> addExtraHosts(String... hosts) {
+	public Options addExtraHosts(String... hosts) {
 		LinkedList<String> list = new LinkedList<>();
 		list.addAll(Arrays.asList(hosts));
 		if (this.hostConfig.extraHosts() != null) {
@@ -251,7 +249,7 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> addLinks(String... links) {
+	public Options addLinks(String... links) {
 		LinkedList<String> list = new LinkedList<>();
 		list.addAll(Arrays.asList(links));
 		if (this.hostConfig.links() != null) {
@@ -262,7 +260,7 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> addLxcParameter(String key, String value) {
+	public Options addLxcParameter(String key, String value) {
 		LinkedList<HostConfig.LxcConfParameter> list = new LinkedList<>();
 		list.add(new HostConfig.LxcConfParameter(key, value));
 		
@@ -274,19 +272,19 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setNetworkMode(String mode) {
+	public Options setNetworkMode(String mode) {
 		this.hostConfig.networkMode(mode);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> setPrivileged(boolean privileged) {
+	public Options setPrivileged(boolean privileged) {
 		this.hostConfig.privileged(privileged);
 		return this;
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> addSecurityOpt(String... opts) {
+	public Options addSecurityOpt(String... opts) {
 		LinkedList<String> list = new LinkedList<>();
 		list.addAll(Arrays.asList(opts));
 		if (this.hostConfig.securityOpt()!= null) {
@@ -297,7 +295,7 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> addVolumeFrom(String... volumes) {
+	public Options addVolumeFrom(String... volumes) {
 		LinkedList<String> list = new LinkedList<>();
 		list.addAll(Arrays.asList(volumes));
 		if (this.hostConfig.volumesFrom()!= null) {
@@ -308,7 +306,7 @@ public class SpotifyDeployment <I extends Image> extends Deployment<I, Container
 	}
 
 	@Override
-	public Deployment<I, ContainerConfig> publishAllPorts() {
+	public Options publishAllPorts() {
 		return setPublishAllPorts(true);
 	}
 }

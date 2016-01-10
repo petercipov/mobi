@@ -16,22 +16,21 @@ import rx.Observable;
  *
  * @author pcipov
  */
-public class Deployer<R> {
+public class Deployer<O extends Options> {
 	
 	private final ApiHost api;
 	private final List<Container<? extends Image>> deployedContainers;
-	private final RxDocker<R, Deployment<?, R>> rxdocker;
+	private final RxDocker<O> rxdocker;
 	
-	public Deployer(ApiHost api, RxDocker<R, Deployment<?, R>> rxdocker) {
+	public Deployer(ApiHost api, RxDocker<O> rxdocker) {
 		this.api = api;
 		this.rxdocker = rxdocker;
 		this.deployedContainers = Collections.synchronizedList(new LinkedList<>());
 	}
 	
-	public <I extends Image> Observable<Container<I>> deploy(Trace trace, Deployment<I, R> deployment) {
+	public <I extends Image> Observable<Container<I>> deploy(Trace trace, I image, O options) {
 		return Observable.defer(() -> {
-			setDefaults(deployment);
-			I image = deployment.image();
+			setDefaults(options);
 			Event deployEvent = trace.start("Deployer: deploying image", image);
 			return rxdocker.isPresent(trace, image)
 				.flatMap(present -> {
@@ -43,7 +42,7 @@ public class Deployer<R> {
 						return rxdocker.pull(trace, image); 
 					}
 				})
-				.flatMap((xxx) -> rxdocker.createContainer(trace, deployment))
+				.flatMap((xxx) -> rxdocker.createContainer(trace, image, options))
 				.flatMap(containerId -> rxdocker.startContainer(trace, containerId))
                 .flatMap(containerId -> 
                     rxdocker.isContainerRunning(trace, containerId)
@@ -75,10 +74,10 @@ public class Deployer<R> {
 		});
     }
 
-	protected void setDefaults(Deployment<?, ?> deployment) {
+	protected void setDefaults(Options options) {
 		api
 			.getDefaultVolumeBindings()
-			.ifPresent(deployment::addVolumes);
+			.ifPresent(options::addVolumes);
 	}
 	
 	public <T extends Image> Observable<Container<T>> killContainer(Trace trace, Container<T> container) {
