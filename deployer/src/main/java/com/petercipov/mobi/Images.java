@@ -5,9 +5,9 @@ import java.util.List;
 public class Images {
 	
 	protected final Registry registry;
-	protected final List<ExplicitTag> explicitTags;
+	protected final List<TagOverride> explicitTags;
 
-	public Images(Registry registry, List<ExplicitTag> explicitTags) {
+	public Images(Registry registry, List<TagOverride> explicitTags) {
 		this.registry = registry;
 		this.explicitTags = explicitTags;
 	}
@@ -16,7 +16,7 @@ public class Images {
 		return registry;
 	}
 
-	public List<ExplicitTag> getExplicitTags() {
+	public List<TagOverride> getExplicitTags() {
 		return explicitTags;
 	}
 }

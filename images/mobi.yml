@@ -1,0 +1,8 @@
+api:
+    - type: http
+      host: 192.168.56.101
+      port: 2375
+    
+override:
+    - pc.ubuntu.444: 500
+    - pc.ubuntu.44: 50

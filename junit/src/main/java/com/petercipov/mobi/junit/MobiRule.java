@@ -1,11 +1,11 @@
 package com.petercipov.mobi.junit;
 
 import com.petercipov.mobi.config.ApiHost;
-import com.petercipov.mobi.ExplicitTag;
 import com.petercipov.mobi.Image;
 import com.petercipov.mobi.Images;
 import com.petercipov.mobi.Registry;
-import com.petercipov.mobi.config.DockerConfig;
+import com.petercipov.mobi.TagOverride;
+import com.petercipov.mobi.config.MobiConfig;
 import com.petercipov.mobi.deployer.Container;
 import com.petercipov.mobi.deployer.Deployer;
 import com.petercipov.mobi.deployer.Options;
@@ -28,7 +28,7 @@ import rx.schedulers.Schedulers;
 
 public class MobiRule <T extends Images> extends ExternalResource {
 	private final SpotifyClientBuilder clientBuilder;
-	private final DockerConfig dockerConfig;
+	private final MobiConfig dockerConfig;
 	private final Scheduler scheduler;
 	private final ConfigReader reader;
 	private final T images;
@@ -37,11 +37,11 @@ public class MobiRule <T extends Images> extends ExternalResource {
 	private SpotifyRxDocker rxDocker;
 	private final Supplier<Trace> traceSupplier;
 	
-	public MobiRule(BiFunction<? super Registry, List<ExplicitTag>, T> imageFactory) {
+	public MobiRule(BiFunction<? super Registry, List<TagOverride>, T> imageFactory) {
 		this(imageFactory, Schedulers.computation(), new SpotifyClientBuilder(), () -> NoopTrace.INSTANCE);
 	}
 	
-	public MobiRule(BiFunction<? super Registry, List<ExplicitTag>, T> imageFactory, Scheduler scheduler, SpotifyClientBuilder clientBuilder, Supplier<Trace> traceSupplier) {
+	public MobiRule(BiFunction<? super Registry, List<TagOverride>, T> imageFactory, Scheduler scheduler, SpotifyClientBuilder clientBuilder, Supplier<Trace> traceSupplier) {
 		this.reader =  new ConfigReader();
 		this.scheduler = scheduler;
 		this.clientBuilder = clientBuilder;
@@ -55,7 +55,7 @@ public class MobiRule <T extends Images> extends ExternalResource {
 		
 		this.images = imageFactory.apply(
 			this.dockerConfig.getRegistry(), 
-			this.dockerConfig.getExplicitTags()
+			this.dockerConfig.getTags()
 		);
 	}
 

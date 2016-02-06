@@ -6,7 +6,7 @@ import com.petercipov.mobi.Registry;
  *
  * @author pcipov
  */
-public class LocalRegistry implements Registry {
+public class DefaultRegistry implements Registry {
 	
 	@Override
 	public String getConnectionString() {
@@ -15,6 +15,6 @@ public class LocalRegistry implements Registry {
 
 	@Override
 	public String toString() {
-		return "LocalRegistry";
+		return "DefaultRegistry";
 	}
 }

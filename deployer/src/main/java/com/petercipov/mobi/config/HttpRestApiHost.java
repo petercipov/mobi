@@ -11,13 +11,12 @@ public class HttpRestApiHost extends ApiHost {
 	private final String host;
 	private final int port;
 
-	public HttpRestApiHost(String id, String host, int port, Optional<List<String>> volumeBindings) {
-		super(id, volumeBindings);
+	public HttpRestApiHost(String host, int port, Optional<List<String>> volumeBindings) {
+		super(volumeBindings);
 		this.host = host;
 		this.port = port;
 	}
 
-	@Override
 	public String getHost() {
 		return host;
 	}
@@ -32,7 +31,7 @@ public class HttpRestApiHost extends ApiHost {
 	
 	@Override
 	public String toString() {
-		return "HttpRestApiHost(" + "id=" + getId() + ", host=" + host + ", port=" + port + ", volumeBindings=" + getDefaultVolumeBindings() + ')';
+		return "HttpRestApiHost(host=" + host + ", port=" + port + ", volumeBindings=" + getVolumeBindings() + ')';
 	}
 	
 	@Override

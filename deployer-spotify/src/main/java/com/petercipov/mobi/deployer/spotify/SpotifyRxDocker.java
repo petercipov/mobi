@@ -294,7 +294,7 @@ public class SpotifyRxDocker implements RxDocker<SpotifyOptions>{
 				for (Map.Entry<String, List<com.spotify.docker.client.messages.PortBinding>> entry: containerPorts.entrySet()) {
 					List<PortBinding> p = new LinkedList<>();
 					for (com.spotify.docker.client.messages.PortBinding binding : entry.getValue()) {
-						p.add(new PortBinding(binding.hostIp(), Integer.parseInt(binding.hostIp())));
+						p.add(new PortBinding(binding.hostIp(), Integer.parseInt(binding.hostPort())));
 					}
 					converted.put(entry.getKey(), p);
 				}

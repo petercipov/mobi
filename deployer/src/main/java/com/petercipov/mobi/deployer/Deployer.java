@@ -55,7 +55,7 @@ public class Deployer<O extends Options> {
                     })
 					.flatMap(xxx -> 
 						rxdocker.containerPorts(trace, containerId)
-							.map(ports -> new Container<>(containerId, image, api.getHost(), ports))
+							.map(ports -> new Container<>(containerId, image, ports))
 					)
 					.onErrorResumeNext(ex ->  {
 						return containerId == null
@@ -76,7 +76,7 @@ public class Deployer<O extends Options> {
 
 	protected void setDefaults(Options options) {
 		api
-			.getDefaultVolumeBindings()
+			.getVolumeBindings()
 			.ifPresent(options::addVolumes);
 	}
 	

@@ -12,14 +12,13 @@ public class HttpsRestApiHost extends ApiHost {
 	private final int port;
 	private final String certPath;
 
-	public HttpsRestApiHost(String id, String host, int port, String certPath, Optional<List<String>> volumeBindings) {
-		super(id, volumeBindings);
+	public HttpsRestApiHost(String host, int port, String certPath, Optional<List<String>> volumeBindings) {
+		super(volumeBindings);
 		this.host = host;
 		this.port = port;
 		this.certPath = certPath;
 	}
 	
-	@Override
 	public String getHost() {
 		return host;
 	}
@@ -43,6 +42,6 @@ public class HttpsRestApiHost extends ApiHost {
 	
 	@Override
 	public String toString() {
-		return "HttpsRestApiHost(" + "id=" + getId() + ", host=" + host + ", port=" + port + ", certPath=" + certPath + ", volumeBindings=" + getDefaultVolumeBindings() + ')';
+		return "HttpsRestApiHost(host=" + host + ", port=" + port + ", certPath=" + certPath + ", volumeBindings=" + getVolumeBindings() + ')';
 	}
 }

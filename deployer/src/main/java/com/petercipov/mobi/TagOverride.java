@@ -6,14 +6,14 @@ import java.util.Optional;
  *
  * @author pcipov
  */
-public class ExplicitTag {
+public class TagOverride {
 
 	private final Optional<String> repository;
 	private final String name;
 	private final String tag;
 	private final String explicitTag;
 	
-	public ExplicitTag(Optional<String> repository, String name, String tag, String explicitTag) {
+	public TagOverride(Optional<String> repository, String name, String tag, String explicitTag) {
 		this.repository = repository;
 		this.name = name;
 		this.tag = tag;
@@ -32,7 +32,7 @@ public class ExplicitTag {
 		return tag;
 	}
 
-	public String getExplicitTag() {
+	public String getOverride() {
 		return explicitTag;
 	}
 
