@@ -45,25 +45,19 @@ public class Deployer<O extends Options> {
 				.flatMap((xxx) -> rxdocker.createContainer(trace, image, options))
 				.flatMap(containerId -> rxdocker.startContainer(trace, containerId))
                 .flatMap(containerId -> 
-                    rxdocker.isContainerRunning(trace, containerId)
-                    .flatMap(runnnig -> {
-                        if (runnnig) {
-                            return Observable.just(containerId);
+                    rxdocker.inspectContainer(trace, containerId)
+                    .flatMap(inspection -> {
+                        if (inspection.state().running()) {
+                            return Observable.just(inspection);
                         } else {
                             return Observable.error(new IllegalStateException("Expecting container to run. containerId="+containerId));
                         }
                     })
-					.flatMap(xxx -> 
-						rxdocker.containerPorts(trace, containerId)
-							.map(ports -> new Container<>(containerId, image, ports))
+					.map(inspection -> new Container<>(containerId, image, inspection.networkSettings().ports()))
+					.onErrorResumeNext(ex ->  rxdocker.killContainer(trace, containerId)
+						.flatMap(id -> rxdocker.removeContainer(trace, id))
+						.flatMap(id -> Observable.error(ex))
 					)
-					.onErrorResumeNext(ex ->  {
-						return containerId == null
-							? Observable.error(ex)
-							: rxdocker.killContainer(trace, containerId)
-								.flatMap(id -> rxdocker.removeContainer(trace, id))
-								.flatMap(id -> Observable.error(ex));
-					})
                 )
 				.doOnNext(container -> {
 					trace.event("Deployer: image was deployed, (container)", container);
@@ -73,7 +67,8 @@ public class Deployer<O extends Options> {
 				.doOnTerminate(() -> deployEvent.end());
 		});
     }
-
+	
+	
 	protected void setDefaults(Options options) {
 		api
 			.getVolumeBindings()

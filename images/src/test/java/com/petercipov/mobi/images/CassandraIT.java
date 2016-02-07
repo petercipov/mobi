@@ -14,7 +14,7 @@ public class CassandraIT {
 	public TraceRule traces = new TraceRule();
 	
 	@Rule
-	public MobiRule<STDImages> mobi = new MobiRule<>(STDImages::new);
+	public MobiRule<DefaultImages> mobi = new MobiRule<>(DefaultImages::new);
 	
 	@Test
 	public void cassandraClusterDeployment() throws Exception {

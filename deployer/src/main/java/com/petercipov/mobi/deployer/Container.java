@@ -1,6 +1,7 @@
 package com.petercipov.mobi.deployer;
 
 import com.petercipov.mobi.Image;
+import com.petercipov.mobi.deployer.RxDocker.PortBinding;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

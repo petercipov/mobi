@@ -1,7 +1,6 @@
 package com.petercipov.mobi.deployer.spotify;
 
 import com.petercipov.mobi.Image;
-import com.petercipov.mobi.deployer.PortBinding;
 import com.petercipov.traces.api.Level;
 import com.petercipov.traces.api.Trace;
 import com.petercipov.traces.api.Trace.Event;
@@ -134,7 +133,7 @@ public class SpotifyRxDocker implements RxDocker<SpotifyOptions>{
     public Observable<String> createContainer(Trace trace, Image image, SpotifyOptions builder) {
         return Observable.create((Subscriber<? super String> subscriber) -> {
             Optional<String> name = builder.name();
-            ContainerConfig containerConfig = builder.buildForImage(image);
+            com.spotify.docker.client.messages.ContainerConfig containerConfig = builder.buildForImage(image);
 			Event creating = trace.start("RxDocker: creating container from image ", containerConfig.image());
 			final DockerClient client;
 			final String containerId;
@@ -255,53 +254,6 @@ public class SpotifyRxDocker implements RxDocker<SpotifyOptions>{
 		}).subscribeOn(scheduler);
     }
 
-    public Observable<ContainerInfo> inspectContainer(Trace trace, String containerId) {
-        return Observable.create((Subscriber<? super ContainerInfo> subscriber) -> {
-			Event inspecting = trace.start("RxDocker: inspecting container (containerId): ", containerId);
-			final DockerClient client;
-			final ContainerInfo info;
-			try {
-				client = obtainDockerClient();
-				info = client.inspectContainer(containerId);
-			} catch(Exception ex) {
-				trace.event("RxDocker: inspecting failed", ex);
-				inspecting.end();
-				
-				if (subscriber.isUnsubscribed()) return;
-				subscriber.onError(ex);
-				return;
-			}
-			inspecting.end();
-			
-			if (subscriber.isUnsubscribed()) return;
-			subscriber.onNext(info);
-			subscriber.onCompleted();
-		}).subscribeOn(scheduler);
-    }
-
-    @Override
-    public Observable<Boolean> isContainerRunning(Trace trace, String containerId) {
-        return inspectContainer(trace, containerId)
-            .map(containerInfo -> containerInfo.state().running());
-    }
-
-    @Override
-    public Observable<Map<String, List<PortBinding>>> containerPorts(Trace trace, String containerId) {
-        return inspectContainer(trace, containerId)
-			.map(containerInfo -> {
-				Map<String, List<com.spotify.docker.client.messages.PortBinding>> containerPorts = containerInfo.networkSettings().ports();
-				HashMap<String, List<PortBinding>> converted = new HashMap<>(containerPorts.size());
-				for (Map.Entry<String, List<com.spotify.docker.client.messages.PortBinding>> entry: containerPorts.entrySet()) {
-					List<PortBinding> p = new LinkedList<>();
-					for (com.spotify.docker.client.messages.PortBinding binding : entry.getValue()) {
-						p.add(new PortBinding(binding.hostIp(), Integer.parseInt(binding.hostPort())));
-					}
-					converted.put(entry.getKey(), p);
-				}
-				return converted;
-			});
-    }
-	
     public void close(Trace trace) {
         closeAllClients(trace);
         trace.event("RxDocker: closed all containers");
@@ -330,5 +282,30 @@ public class SpotifyRxDocker implements RxDocker<SpotifyOptions>{
 			Thread.currentThread().getId(), 
 			(Long threadId) -> clientBuilder.build()
 		);
+	}
+
+	@Override
+	public Observable<ContainerInfo> inspectContainer(Trace trace, String containerId) {
+		return Observable.create((Subscriber<? super ContainerInfo> subscriber) -> {
+			Event inspecting = trace.start("RxDocker: inspecting container (containerId): ", containerId);
+			final DockerClient client;
+			final ContainerInfo info;
+			try {
+				client = obtainDockerClient();
+				info = new SpotifyInspectWrapper(client.inspectContainer(containerId));
+			} catch(Exception ex) {
+				trace.event("RxDocker: inspecting failed", ex);
+				inspecting.end();
+				
+				if (subscriber.isUnsubscribed()) return;
+				subscriber.onError(ex);
+				return;
+			}
+			inspecting.end();
+			
+			if (subscriber.isUnsubscribed()) return;
+			subscriber.onNext(info);
+			subscriber.onCompleted();
+		}).subscribeOn(scheduler);
 	}
 }
