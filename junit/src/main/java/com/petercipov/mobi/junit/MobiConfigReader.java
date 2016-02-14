@@ -5,8 +5,6 @@ import com.petercipov.mobi.config.YamlConfigParser;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.StringReader;
-import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,9 +12,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author pcipov
  */
-public class ConfigReader {
+public class MobiConfigReader {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigReader.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MobiConfigReader.class);
 	
 	private static final String ENV_MOBI_CONFIG_FILE = "MOBI_CONFIG_FILE";
 	private static final String SYS_MOBI_CONFIG_FILE = "mobi.config.file";
@@ -27,14 +25,6 @@ public class ConfigReader {
 		MobiConfig dockerConfig = parser.parse(new FileInputStream(confFile));
 		LOGGER.info("Test configuration has been parsed {}", dockerConfig);
 		return dockerConfig;
-	}
-	
-	private void load(Properties p, String value) {
-		try {
-			p.load(new StringReader(value));
-		} catch (Exception ex) {
-			throw new IllegalArgumentException(ex);
-		}
 	}
 	
 	private File fromConfigFile() throws IOException {

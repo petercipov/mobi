@@ -27,14 +27,20 @@
 		</dependency>
 		<dependency>
 			<groupId>com.petercipov</groupId>
+			<artifactId>mobi-deployer-spotify</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.petercipov</groupId>
 			<artifactId>traces-junit</artifactId>
-			<version>1.0.0</version>
+			<version>${traces.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.13</version>
+			<version>${slf4j.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

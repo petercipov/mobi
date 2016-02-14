@@ -22,6 +22,8 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<jackson.version>2.6.3</jackson.version>
+		<traces.version>1.0.0</traces.version>
+		<slf4j.version>1.7.13</slf4j.version>
 	</properties>
 	
 	<dependencyManagement>
@@ -29,7 +31,7 @@
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
-				<version>1.7.13</version>
+				<version>${slf4j.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.guava</groupId>

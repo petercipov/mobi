@@ -1,23 +1,19 @@
 package com.petercipov.mobi.junit;
 
+import com.petercipov.mobi.ImageDefinition;
 import com.petercipov.mobi.config.ApiHost;
-import com.petercipov.mobi.Image;
+import com.petercipov.mobi.ImageInstance;
 import com.petercipov.mobi.Images;
-import com.petercipov.mobi.Registry;
-import com.petercipov.mobi.TagOverride;
 import com.petercipov.mobi.config.MobiConfig;
 import com.petercipov.mobi.deployer.Container;
 import com.petercipov.mobi.deployer.Deployer;
-import com.petercipov.mobi.deployer.Options;
-import com.petercipov.mobi.deployer.spotify.SpotifyClientBuilder;
-import com.petercipov.mobi.deployer.spotify.SpotifyOptions;
-import com.petercipov.mobi.deployer.spotify.SpotifyRxDocker;
+import com.petercipov.mobi.deployer.RxConnector;
+import com.petercipov.mobi.deployer.RxDeployment;
+import com.petercipov.mobi.deployer.RxDocker;
 import com.petercipov.traces.api.Level;
 import com.petercipov.traces.api.NoopTrace;
 import com.petercipov.traces.api.Trace;
 import com.petercipov.traces.api.Trace.Event;
-import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -27,42 +23,48 @@ import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
 public class MobiRule <T extends Images> extends ExternalResource {
-	private final SpotifyClientBuilder clientBuilder;
-	private final MobiConfig dockerConfig;
+
+	private static final String CONNECTOR_NAME = "com.petercipov.mobi.deployer.RxConnectorImpl";
+
+	private final MobiConfig mobiConfig;
 	private final Scheduler scheduler;
-	private final ConfigReader reader;
 	private final T images;
 
 	private Deployer deployer;
-	private SpotifyRxDocker rxDocker;
+	private RxDocker rxDocker;
+	private final RxConnectorLoader connectorLoader;
 	private final Supplier<Trace> traceSupplier;
-	
-	public MobiRule(BiFunction<? super Registry, List<TagOverride>, T> imageFactory) {
-		this(imageFactory, Schedulers.computation(), new SpotifyClientBuilder(), () -> NoopTrace.INSTANCE);
+
+	public MobiRule(Function<MobiConfig, T> imagesBuilder) {
+		this(imagesBuilder, () -> NoopTrace.INSTANCE);
 	}
 	
-	public MobiRule(BiFunction<? super Registry, List<TagOverride>, T> imageFactory, Scheduler scheduler, SpotifyClientBuilder clientBuilder, Supplier<Trace> traceSupplier) {
-		this.reader =  new ConfigReader();
+	public MobiRule(Function<MobiConfig, T> imagesBuilder, Supplier<Trace> traceSupplier) {
+		this(imagesBuilder, Schedulers.computation(), new ReflexRxConnectorLoader(CONNECTOR_NAME), traceSupplier);
+	}
+	
+	public MobiRule(Function<MobiConfig, T> imagesBuilder, Scheduler scheduler, RxConnectorLoader connectorLoader, Supplier<Trace> traceSupplier) {
 		this.scheduler = scheduler;
-		this.clientBuilder = clientBuilder;
+		this.connectorLoader = connectorLoader;
 		this.traceSupplier = traceSupplier;
 		
+		MobiConfigReader reader =  new MobiConfigReader();
 		try {
-			this.dockerConfig = this.reader.readFromDefaultLocations();
+			this.mobiConfig = reader.readFromDefaultLocations();
 		} catch(Exception ex ) {
 			throw new IllegalStateException("Configuration was not loaded", ex);
 		}
-		
-		this.images = imageFactory.apply(
-			this.dockerConfig.getRegistry(), 
-			this.dockerConfig.getTags()
-		);
+
+		this.images = imagesBuilder.apply(this.mobiConfig);
 	}
 
 	@Override
 	protected void before() throws Throwable {
-		ApiHost api = this.dockerConfig.getRandomApiHost();
-		this.rxDocker = new SpotifyRxDocker(api.setupBuilder(clientBuilder), this.scheduler);
+		final Trace trace = traceSupplier.get();
+		final ApiHost api = this.mobiConfig.getRandomApiHost();
+		final RxConnector connector = this.connectorLoader.load(trace);
+
+		this.rxDocker = connector.createRxDocker(api, scheduler);
 		this.deployer = new Deployer(api, this.rxDocker);
 	}
 
@@ -94,28 +96,28 @@ public class MobiRule <T extends Images> extends ExternalResource {
 		return images;
 	}
 	
-	public <I extends Image> MobiWork<I> image(Function<T, I> imageChooser) {
-		I image = imageChooser.apply(images);
-		return new MobiWork<>(deployer, image, new SpotifyOptions());
+	public <I extends ImageDefinition> MobiWork<I> image(Function<T, ImageInstance<I>> imageChooser) {
+		ImageInstance<I> image = imageChooser.apply(images);
+		return new MobiWork<>(deployer, rxDocker, image);
 	}
 	
-	public SpotifyRxDocker docker() {
+	public RxDocker docker() {
 		return rxDocker;
 	}
 	
-	public static class MobiWork<I extends Image> {
+	public static class MobiWork<I extends ImageDefinition> {
 
 		private final Deployer deployer;
-		private final Options options;
-		private final I image;
+		private final RxDeployment options;
+		private final ImageInstance<I> image;
 
-		public MobiWork(Deployer deployer, I image, Options deployment) {
+		public MobiWork(Deployer deployer, RxDocker docker, ImageInstance<I> image) {
 			this.deployer = deployer;
-			this.options = deployment;
+			this.options = docker.deployment();
 			this.image = image;
 		}
 		
-		public MobiWork<I> with(Consumer<Options> b) {
+		public MobiWork<I> with(Consumer<RxDeployment> b) {
 			b.accept(options);
 			return this;
 		}

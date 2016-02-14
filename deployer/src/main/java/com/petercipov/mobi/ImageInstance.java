@@ -1,23 +1,21 @@
 package com.petercipov.mobi;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
-
 /**
  *
  * @author pcipov
  */
-public abstract class Image {	
+public class ImageInstance<I extends ImageDefinition> {	
 	private static final String REPOSITORY_DELIMITER = "/";
 	private static final String TAG_DELIMITER = ":";
 	
 	private final String tag;
 	private final Registry registry;
+	private final I definition;
 
-	public Image(Registry registry, String tag) {
+	public ImageInstance(Registry registry, String tag, I definition) {
 		this.registry = registry;
 		this.tag = tag;
+		this.definition = definition;
 	}
 
 	public Registry getRegistry() {
@@ -27,22 +25,16 @@ public abstract class Image {
 	public String getTag() {
 		return tag;
 	}
-	
-	public abstract String getName();
-	
-	public Optional<String> getRepository() {
-		return Optional.empty();
-	}
-	
-	public Collection<String> getExposedPorts() {
-		return Collections.emptyList();
-	}
 
+	public I getDefinition() {
+		return definition;
+	}
+	
 	@Override
 	public String toString() {
 		return registry.getConnectionString()
-			+ getRepository().map(repository -> repository + REPOSITORY_DELIMITER).orElse("")
-			+ getName()
+			+ getDefinition().getRepository().map(repository -> repository + REPOSITORY_DELIMITER).orElse("")
+			+ getDefinition().getName()
 			+ TAG_DELIMITER
 			+ tag;
 	}

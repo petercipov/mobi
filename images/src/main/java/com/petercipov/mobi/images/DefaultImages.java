@@ -1,22 +1,19 @@
 package com.petercipov.mobi.images;
 
 import com.petercipov.mobi.Images;
-import com.petercipov.mobi.Registry;
-import com.petercipov.mobi.TagOverride;
 import com.petercipov.mobi.config.ImageBuilder;
-import java.util.List;
+import com.petercipov.mobi.config.MobiConfig;
 
 public class DefaultImages extends Images {
 
 	private final ImageBuilder<CassandraImage> cassandra;
 	
-	public DefaultImages(Registry registry, List<TagOverride> explicitTags) {
-		super(registry, explicitTags);
-		cassandra = ImageBuilder.create(tag -> new CassandraImage(registry, tag), explicitTags);
+	public DefaultImages(MobiConfig config) {
+		super(config.getRegistry(), config.getTags());
+		cassandra = ImageBuilder.create(new CassandraImage(), registry, explicitTags);
 	}
 
 	public ImageBuilder<CassandraImage> cassandra() {
 		return cassandra;
 	}
-	
 }

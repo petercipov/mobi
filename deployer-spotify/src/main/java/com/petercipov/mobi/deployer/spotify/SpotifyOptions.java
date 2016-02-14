@@ -1,8 +1,9 @@
 package com.petercipov.mobi.deployer.spotify;
 
 import com.google.common.collect.Lists;
-import com.petercipov.mobi.Image;
-import com.petercipov.mobi.deployer.Options;
+import com.petercipov.mobi.ImageInstance;
+import com.petercipov.mobi.deployer.RxDeployment;
+import com.petercipov.traces.api.Trace;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.PortBinding;
@@ -11,29 +12,32 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import rx.Observable;
 
 
 /**
  *
  * @author Peter Cipov
  */
-public class SpotifyOptions extends Options {
+public class SpotifyOptions extends RxDeployment {
     
     private final ContainerConfig.Builder containerConfig;
 	private final HostConfig.Builder hostConfig;
+	private final SpotifyRxDocker docker;
 
-    public SpotifyOptions() {
+    public SpotifyOptions(SpotifyRxDocker docker) {
         this.containerConfig = ContainerConfig.builder();
 		this.hostConfig = HostConfig.builder();
+		this.docker = docker;
     }
 
     @Override
-    public Options addVolume(String hostPath, String guestPath) {
+    public RxDeployment addVolume(String hostPath, String guestPath) {
         return addVolumes(Arrays.asList(hostPath+":"+guestPath));
     }
 
 	@Override
-	public Options addVolumes(Iterable<String> volumeBindings) {
+	public RxDeployment addVolumes(Iterable<String> volumeBindings) {
 		List<String> volumes = Lists.newLinkedList(volumeBindings);
 		if (this.hostConfig.binds() != null) {
             volumes.addAll(this.hostConfig.binds());
@@ -44,7 +48,7 @@ public class SpotifyOptions extends Options {
 	}
 
     @Override
-    public Options addEnv(String variable) {
+    public RxDeployment addEnv(String variable) {
         List<String> env = new LinkedList<>();
 		
         if (this.containerConfig.env() == null) {
@@ -59,13 +63,13 @@ public class SpotifyOptions extends Options {
 	
 	
 	@Override
-	public Options setPublishAllPorts(boolean enabled) {
+	public RxDeployment setPublishAllPorts(boolean enabled) {
 		this.hostConfig.publishAllPorts(enabled);
 		return this;
 	}
 
     @Override
-    public Options addPortMapping(String port, int customPort) {
+    public RxDeployment addPortMapping(String port, int customPort) {
         if (this.hostConfig.portBindings() == null) {
             HashMap<String, List<PortBinding>> ports = new HashMap<>();
             ports.put(port, Arrays.asList(PortBinding.of(null, customPort)));
@@ -78,7 +82,7 @@ public class SpotifyOptions extends Options {
         return this;
     }
 	
-	public ContainerConfig buildForImage(Image image) {
+	public ContainerConfig buildForImage(ImageInstance image) {
         return this.containerConfig
             .image(image.toString())
             .hostConfig(this.hostConfig.build())
@@ -86,49 +90,49 @@ public class SpotifyOptions extends Options {
     }
 
 	@Override
-	public Options setWorkDir(String workDir) {
+	public RxDeployment setWorkDir(String workDir) {
 		this.containerConfig.workingDir(workDir);
 		return this;
 	}
 
 	@Override
-	public Options setUser(String user) {
+	public RxDeployment setUser(String user) {
 		this.containerConfig.user(user);
 		return this;
 	}
 
 	@Override
-	public Options setCmd(String ... cmd) {
+	public RxDeployment setCmd(String ... cmd) {
 		this.containerConfig.cmd(cmd);
 		return this;
 	}
 
 	@Override
-	public Options setCpuQuota(long quota) {
+	public RxDeployment setCpuQuota(long quota) {
 		this.containerConfig.cpuQuota(quota);
 		return this;
 	}
 
 	@Override
-	public Options setCpuShares(long shares) {
+	public RxDeployment setCpuShares(long shares) {
 		this.containerConfig.cpuShares(shares);
 		return this;
 	}
 
 	@Override
-	public Options setDomainName(String name) {
+	public RxDeployment setDomainName(String name) {
 		this.containerConfig.domainname(name);
 		return this;
 	}
 
 	@Override
-	public Options setEntryPoint(String... entry) {
+	public RxDeployment setEntryPoint(String... entry) {
 		this.containerConfig.entrypoint(entry);
 		return this;
 	}
 
 	@Override
-	public Options addExposedPort(String port) {
+	public RxDeployment addExposedPort(String port) {
 		HashSet<String> ports = new HashSet<>();
 		ports.add(port);
 		
@@ -141,13 +145,13 @@ public class SpotifyOptions extends Options {
 	}
 
 	@Override
-	public Options setHostName(String hostName) {
+	public RxDeployment setHostName(String hostName) {
 		this.containerConfig.hostname(hostName);
 		return this;
 	}
 
 	@Override
-	public Options addLabel(String key, String value) {
+	public RxDeployment addLabel(String key, String value) {
 		HashMap<String, String> labels = new HashMap<>();
 		labels.put(key, value);
 		if (this.containerConfig.labels() != null) {
@@ -158,48 +162,48 @@ public class SpotifyOptions extends Options {
 	}
 
 	@Override
-	public Options setMacAdress(String mac) {
+	public RxDeployment setMacAdress(String mac) {
 		this.containerConfig.macAddress(mac);
 		return this;
 	}
 
 	@Override
-	public Options setMemory(long memory) {
+	public RxDeployment setMemory(long memory) {
 		this.containerConfig.memory(memory);
 		return this;
 	}
 	
 	@Override
-	public Options setNetworkDisabled(boolean disabled) {
+	public RxDeployment setNetworkDisabled(boolean disabled) {
 		this.containerConfig.networkDisabled(disabled);
 		return this;
 	}
 
 	@Override
-	public Options setOpenStdIn(boolean open) {
+	public RxDeployment setOpenStdIn(boolean open) {
 		this.containerConfig.openStdin(open);
 		return this;
 	}
 
 	@Override
-	public Options setStdInOnce(boolean once) {
+	public RxDeployment setStdInOnce(boolean once) {
 		this.containerConfig.stdinOnce(once);
 		return this;
 	}
 
 	@Override
-	public Options setTty(boolean enabled) {
+	public RxDeployment setTty(boolean enabled) {
 		this.containerConfig.tty(enabled);
 		return this;
 	}
 
 	@Override
-	public Options addEnv(String name, String value) {
+	public RxDeployment addEnv(String name, String value) {
 		return addEnv(name.trim()+"="+value.trim());
 	}
 
 	@Override
-	public Options setMemory(long memory, long swap) {
+	public RxDeployment setMemory(long memory, long swap) {
 		this.containerConfig.memory(memory);
 		if (swap < 0) {
 			this.containerConfig.memorySwap(-1l);
@@ -210,13 +214,13 @@ public class SpotifyOptions extends Options {
 	}
 
 	@Override
-	public Options setCgroupParent(String parent) {
+	public RxDeployment setCgroupParent(String parent) {
 		this.hostConfig.cgroupParent(parent);
 		return this;
 	}
 
 	@Override
-	public Options addDns(String... dns) {
+	public RxDeployment addDns(String... dns) {
 		LinkedList<String> list = new LinkedList<>();
 		list.addAll(Arrays.asList(dns));
 		if (this.hostConfig.dns() != null) {
@@ -227,7 +231,7 @@ public class SpotifyOptions extends Options {
 	}
 
 	@Override
-	public Options addDnsSearch(String... dns) {
+	public RxDeployment addDnsSearch(String... dns) {
 		LinkedList<String> list = new LinkedList<>();
 		list.addAll(Arrays.asList(dns));
 		if (this.hostConfig.dnsSearch() != null) {
@@ -238,7 +242,7 @@ public class SpotifyOptions extends Options {
 	}
 
 	@Override
-	public Options addExtraHosts(String... hosts) {
+	public RxDeployment addExtraHosts(String... hosts) {
 		LinkedList<String> list = new LinkedList<>();
 		list.addAll(Arrays.asList(hosts));
 		if (this.hostConfig.extraHosts() != null) {
@@ -249,7 +253,7 @@ public class SpotifyOptions extends Options {
 	}
 
 	@Override
-	public Options addLinks(String... links) {
+	public RxDeployment addLinks(String... links) {
 		LinkedList<String> list = new LinkedList<>();
 		list.addAll(Arrays.asList(links));
 		if (this.hostConfig.links() != null) {
@@ -260,7 +264,7 @@ public class SpotifyOptions extends Options {
 	}
 
 	@Override
-	public Options addLxcParameter(String key, String value) {
+	public RxDeployment addLxcParameter(String key, String value) {
 		LinkedList<HostConfig.LxcConfParameter> list = new LinkedList<>();
 		list.add(new HostConfig.LxcConfParameter(key, value));
 		
@@ -272,19 +276,19 @@ public class SpotifyOptions extends Options {
 	}
 
 	@Override
-	public Options setNetworkMode(String mode) {
+	public RxDeployment setNetworkMode(String mode) {
 		this.hostConfig.networkMode(mode);
 		return this;
 	}
 
 	@Override
-	public Options setPrivileged(boolean privileged) {
+	public RxDeployment setPrivileged(boolean privileged) {
 		this.hostConfig.privileged(privileged);
 		return this;
 	}
 
 	@Override
-	public Options addSecurityOpt(String... opts) {
+	public RxDeployment addSecurityOpt(String... opts) {
 		LinkedList<String> list = new LinkedList<>();
 		list.addAll(Arrays.asList(opts));
 		if (this.hostConfig.securityOpt()!= null) {
@@ -295,7 +299,7 @@ public class SpotifyOptions extends Options {
 	}
 
 	@Override
-	public Options addVolumeFrom(String... volumes) {
+	public RxDeployment addVolumeFrom(String... volumes) {
 		LinkedList<String> list = new LinkedList<>();
 		list.addAll(Arrays.asList(volumes));
 		if (this.hostConfig.volumesFrom()!= null) {
@@ -306,7 +310,12 @@ public class SpotifyOptions extends Options {
 	}
 
 	@Override
-	public Options publishAllPorts() {
+	public RxDeployment publishAllPorts() {
 		return setPublishAllPorts(true);
+	}
+
+	@Override
+	protected Observable<String> createContainer(Trace trace, ImageInstance<?> image) {
+		return this.docker.createContainer(trace, image, this);
 	}
 }

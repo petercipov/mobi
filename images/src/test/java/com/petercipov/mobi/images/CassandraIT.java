@@ -14,21 +14,20 @@ public class CassandraIT {
 	public TraceRule traces = new TraceRule();
 	
 	@Rule
-	public MobiRule<DefaultImages> mobi = new MobiRule<>(DefaultImages::new);
+	public MobiRule<DefaultImages> mobi = new MobiRule<>(DefaultImages::new, traces::trace);
 	
 	@Test
 	public void cassandraClusterDeployment() throws Exception {
 		final Trace trace = traces.trace();
 		
 		Container<CassandraImage> first = mobi
-			.image(images -> images.cassandra().forTag("3.0.2"))
-			.with(setup -> setup
-				.publishAllPorts()
-				.setName("firstNode-deploy")
-			)
-			.deploy(trace)
-			.toBlocking().toFuture().get(1, TimeUnit.MINUTES)
-		;
+				.image(images -> images.cassandra().forTag("3.0.2"))
+				.with(setup -> setup
+					.publishAllPorts()
+					.setName("firstNode-deploy")
+				)
+				.deploy(trace)
+				.toBlocking().toFuture().get(1, TimeUnit.MINUTES);
 		
 		String ipAddress = mobi.docker().inspectContainer(trace, first.getContainerId())
 			.toBlocking().toFuture().get(1, TimeUnit.MINUTES)

@@ -1,6 +1,7 @@
 package com.petercipov.mobi.deployer;
 
-import com.petercipov.mobi.Image;
+import com.petercipov.mobi.ImageDefinition;
+import com.petercipov.mobi.ImageInstance;
 import com.petercipov.mobi.deployer.RxDocker.PortBinding;
 import java.util.Collections;
 import java.util.List;
@@ -10,12 +11,12 @@ import java.util.Map;
  *
  * @author pcipov
  */
-public class Container<T extends Image> {
+public class Container<T extends ImageDefinition> {
 	private final String containerId;
-	private final T image;
+	private final ImageInstance<T> image;
 	private final Map<String, List<PortBinding>> ports;
 
-	public Container(String containerId, T image, Map<String, List<PortBinding>> ports) {
+	public Container(String containerId, ImageInstance<T> image, Map<String, List<PortBinding>> ports) {
 		this.containerId = containerId;
 		this.image = image;
 		this.ports = Collections.unmodifiableMap(ports);
@@ -29,7 +30,7 @@ public class Container<T extends Image> {
 		return ports;
 	}
 
-	public T getImage() {
+	public ImageInstance<T> getImage() {
 		return image;
 	}
 	

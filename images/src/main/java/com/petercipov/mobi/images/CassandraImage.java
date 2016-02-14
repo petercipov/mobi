@@ -1,13 +1,12 @@
 package com.petercipov.mobi.images;
 
-import com.petercipov.mobi.Image;
-import com.petercipov.mobi.Registry;
+import com.petercipov.mobi.ImageDefinition;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-public class CassandraImage extends Image {
+public class CassandraImage implements ImageDefinition {
 	
 	public static final String CLUSTER_COMM_PORT = "7000/tcp";
 	public static final String SSL_CLUSTER_COMM_PORT =  "7001/tcp";
@@ -23,17 +22,18 @@ public class CassandraImage extends Image {
 		THRIFT_PORT
 	));
 
-	public CassandraImage(Registry registry, String tag) {
-		super(registry, tag);
-	}
-
 	@Override
 	public String getName() {
 		return "cassandra";
 	}
 
 	@Override
-	public Collection<String> getExposedPorts() {
+	public Iterable<String> getExposedPorts() {
 		return EXPOSED_PORTS;
+	}
+
+	@Override
+	public Optional<String> getRepository() {
+		return Optional.empty();
 	}
 }

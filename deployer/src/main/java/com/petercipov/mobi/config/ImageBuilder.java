@@ -3,27 +3,30 @@ package com.petercipov.mobi.config;
 import com.petercipov.mobi.TagOverride;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.petercipov.mobi.Image;
+import com.petercipov.mobi.ImageDefinition;
+import com.petercipov.mobi.ImageInstance;
+import com.petercipov.mobi.Registry;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  *
  * @author pcipov
  */
-public  class ImageBuilder <T extends Image> {
+public  class ImageBuilder <T extends ImageDefinition> {
 	private static final String MASTER_TAG = "master";
 	private static final String LATEST_TAG = "latest";
-	
-	private final Function<String, T> buildr;
+
+	private final Registry registry;
+	private final T definition;
 	private final List<TagOverride> explicitTags;
 
-	public ImageBuilder(Function<String, T> buildr, List<TagOverride> explicitTags) {
-		this.buildr = buildr;
+	public ImageBuilder(Registry registry, T definition, List<TagOverride> explicitTags) {
+		this.registry = registry;
+		this.definition = definition;
 		this.explicitTags = explicitTags;
 	}
 
-	public T forTag(String tag) {
+	public ImageInstance<T> forTag(String tag) {
 		String overriden = tag;
 		for(TagOverride explicit : explicitTags) {
 			if (explicit.getTag().equals(tag)) {
@@ -31,26 +34,25 @@ public  class ImageBuilder <T extends Image> {
 				break;
 			}
 		}
-		return buildr.apply(overriden);
+		return new ImageInstance<>(registry, overriden, definition);
 	}
 
-	public T forMaster() {
+	public ImageInstance<T>  forMaster() {
 		return forTag(MASTER_TAG);
 	}
 	
-	public T forLatest() {
+	public ImageInstance<T>  forLatest() {
 		return forTag(LATEST_TAG);
 	}
 	
-	public static <T extends Image> ImageBuilder<T> create(Function<String, T> buildFunc, List<TagOverride> overrides) {
-		T image = buildFunc.apply(MASTER_TAG);
+	public static <T extends ImageDefinition> ImageBuilder<T> create(T definition, Registry registry, List<TagOverride> overrides) {
 		
 		List<TagOverride> tags = Lists.newLinkedList(Iterables.filter(overrides,
 			(i) -> 
-				i.getRepository().equals(image.getRepository())
-				&& i.getName().equals(image.getName())
+				i.getRepository().equals(definition.getRepository())
+				&& i.getName().equals(definition.getName())
 		));
 		
-		return new ImageBuilder<>(buildFunc, tags);
+		return new ImageBuilder<>(registry, definition, tags);
 	}
 }

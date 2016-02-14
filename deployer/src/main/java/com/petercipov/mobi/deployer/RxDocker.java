@@ -1,6 +1,6 @@
 package com.petercipov.mobi.deployer;
 
-import com.petercipov.mobi.Image;
+import com.petercipov.mobi.ImageInstance;
 import com.petercipov.traces.api.Trace;
 import java.util.Date;
 import java.util.List;
@@ -12,18 +12,21 @@ import rx.Observable;
  *
  * @author Peter Cipov
  */
-public interface RxDocker <O extends Options> {
+public interface RxDocker {
+	
+	RxDeployment deployment();
     
-    Observable<Image> pull(Trace trace, Image image);
-    Observable<Boolean> isPresent(Trace trace, Image image);
+    Observable<ImageInstance> pull(Trace trace, ImageInstance image);
+    Observable<Boolean> isPresent(Trace trace, ImageInstance image);
     
-    Observable<String> createContainer(Trace trace, Image image, O deployment);
     Observable<String> startContainer(Trace trace, String containerId);
     Observable<String> killContainer(Trace trace, String containerId);
     Observable<String> stopContainer(Trace trace, String containerId, int secondsBeforeFail);
     Observable<String> removeContainer(Trace trace, String containerId);
 	
 	Observable<ContainerInfo> inspectContainer(Trace trace, String containerId);
+
+	void close(Trace trace);
 	
 	interface ContainerInfo {
 		String id();
