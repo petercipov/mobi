@@ -1,6 +1,6 @@
 package com.petercipov.mobi.deployer.spotify;
 
-import com.petercipov.mobi.ImageInstance;
+import com.petercipov.mobi.Instance;
 import com.petercipov.mobi.deployer.RxDeployment;
 import com.petercipov.traces.api.Level;
 import com.petercipov.traces.api.Trace;
@@ -35,8 +35,8 @@ public class SpotifyRxDocker implements RxDocker{
 	}
 
     @Override
-    public Observable<ImageInstance> pull(Trace trace, ImageInstance image) {
-        return Observable.create((Subscriber<? super ImageInstance> subscriber) -> {
+    public Observable<Instance> pull(Trace trace, Instance image) {
+        return Observable.create((Subscriber<? super Instance> subscriber) -> {
 			Trace.Event pulling = trace.start("RxDocker: pull(image)", image);
 			final DockerClient client;
 			try {
@@ -109,7 +109,7 @@ public class SpotifyRxDocker implements RxDocker{
 	}
 
     @Override
-    public Observable<Boolean> isPresent(Trace trace, ImageInstance image) {
+    public Observable<Boolean> isPresent(Trace trace, Instance image) {
         return Observable.defer(() -> {
 			final String id = image.toString();
 			trace.event("RxDocker: checking if image is present", image);
@@ -127,7 +127,7 @@ public class SpotifyRxDocker implements RxDocker{
 		});
     }
 
-    public Observable<String> createContainer(Trace trace, ImageInstance image, SpotifyOptions builder) {
+    public Observable<String> createContainer(Trace trace, Instance image, SpotifyOptions builder) {
         return Observable.create((Subscriber<? super String> subscriber) -> {
             Optional<String> name = builder.name();
             com.spotify.docker.client.messages.ContainerConfig containerConfig = builder.buildForImage(image);

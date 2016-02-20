@@ -1,10 +1,10 @@
 package com.petercipov.mobi.config;
 
-import com.google.common.base.Charsets;
 import com.petercipov.mobi.Registry;
 import com.petercipov.mobi.TagOverride;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -29,10 +29,12 @@ import org.yaml.snakeyaml.events.StreamStartEvent;
  * @author petercipov
  */
 public class YamlConfigParser {
+	
+	private static final Charset UTF_8 = Charset.forName("UTF-8");
 
 	public MobiConfig parse(InputStream in) {
 		Yaml parser = new Yaml();
-		Events events = new Events(parser.parse(new InputStreamReader(in, Charsets.UTF_8)).iterator());		
+		Events events = new Events(parser.parse(new InputStreamReader(in, UTF_8)).iterator());		
 		return toConfig(events);
 	}
 

@@ -4,18 +4,18 @@ package com.petercipov.mobi;
  *
  * @author pcipov
  */
-public class ImageInstance<I extends ImageDefinition> {	
+public class Instance {	
 	private static final String REPOSITORY_DELIMITER = "/";
 	private static final String TAG_DELIMITER = ":";
 	
 	private final String tag;
 	private final Registry registry;
-	private final I definition;
+	private final Name image;
 
-	public ImageInstance(Registry registry, String tag, I definition) {
+	public Instance(Registry registry, Name definition, String tag) {
 		this.registry = registry;
+		this.image = definition;
 		this.tag = tag;
-		this.definition = definition;
 	}
 
 	public Registry getRegistry() {
@@ -26,15 +26,15 @@ public class ImageInstance<I extends ImageDefinition> {
 		return tag;
 	}
 
-	public I getDefinition() {
-		return definition;
+	public Name getImage() {
+		return image;
 	}
 	
 	@Override
 	public String toString() {
 		return registry.getConnectionString()
-			+ getDefinition().getRepository().map(repository -> repository + REPOSITORY_DELIMITER).orElse("")
-			+ getDefinition().getName()
+			+ getImage().getRepository().map(repository -> repository + REPOSITORY_DELIMITER).orElse("")
+			+ getImage().getName()
 			+ TAG_DELIMITER
 			+ tag;
 	}

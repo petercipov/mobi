@@ -36,6 +36,12 @@
 			<version>${slf4j.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.petercipov</groupId>
+			<artifactId>mobi-deployer-spotify</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	
 	<build>

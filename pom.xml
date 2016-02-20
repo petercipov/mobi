@@ -13,7 +13,6 @@
 	<modules>
 		<module>deployer</module>
 		<module>deployer-spotify</module>
-		<module>images</module>
 		<module>junit</module>
 	</modules>
 	
@@ -32,11 +31,6 @@
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
 				<version>${slf4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.google.guava</groupId>
-				<artifactId>guava</artifactId>
-				<version>18.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.jaxrs</groupId>

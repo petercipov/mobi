@@ -2,7 +2,6 @@ package com.petercipov.mobi.config;
 
 import com.petercipov.mobi.TagOverride;
 import com.petercipov.mobi.Registry;
-import com.google.common.collect.Iterables;
 import java.util.List;
 
 /**
@@ -31,7 +30,7 @@ public class MobiConfig {
 			throw new IllegalStateException("empty apis, expecting at least one");
 		}
 		int id = Math.abs((int)System.currentTimeMillis()) % hosts.size();
-		return Iterables.get(hosts, id);
+		return hosts.get(id);
 	}
 
 	public Registry getRegistry() {

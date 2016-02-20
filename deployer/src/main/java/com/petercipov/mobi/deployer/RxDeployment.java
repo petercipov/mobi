@@ -1,6 +1,6 @@
 package com.petercipov.mobi.deployer;
 
-import com.petercipov.mobi.ImageInstance;
+import com.petercipov.mobi.Instance;
 import com.petercipov.traces.api.Trace;
 import java.util.Optional;
 import rx.Observable;
@@ -290,6 +290,6 @@ public abstract class RxDeployment {
 	public abstract RxDeployment addVolumeFrom(String ... volumes);
 	
 	
-	protected abstract Observable<String> createContainer(Trace trace, ImageInstance<?> image);
+	protected abstract Observable<String> createContainer(Trace trace, Instance image);
 	
 }

@@ -1,10 +1,10 @@
 package com.petercipov.mobi.config;
 
-import com.google.common.base.Charsets;
 import com.petercipov.mobi.TagOverride;
 import com.petercipov.mobi.Registry;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Test;
@@ -284,6 +284,6 @@ public class YamlConfigParserTest {
 	}
 	
 	private InputStream stream(String s) {
-		return new ByteArrayInputStream(s.getBytes(Charsets.UTF_8));
+		return new ByteArrayInputStream(s.getBytes(Charset.forName("UTF-8")));
 	}
 }

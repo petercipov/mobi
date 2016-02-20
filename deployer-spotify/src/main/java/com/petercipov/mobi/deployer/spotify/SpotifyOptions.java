@@ -1,7 +1,7 @@
 package com.petercipov.mobi.deployer.spotify;
 
 import com.google.common.collect.Lists;
-import com.petercipov.mobi.ImageInstance;
+import com.petercipov.mobi.Instance;
 import com.petercipov.mobi.deployer.RxDeployment;
 import com.petercipov.traces.api.Trace;
 import com.spotify.docker.client.messages.ContainerConfig;
@@ -82,7 +82,7 @@ public class SpotifyOptions extends RxDeployment {
         return this;
     }
 	
-	public ContainerConfig buildForImage(ImageInstance image) {
+	public ContainerConfig buildForImage(Instance image) {
         return this.containerConfig
             .image(image.toString())
             .hostConfig(this.hostConfig.build())
@@ -315,7 +315,7 @@ public class SpotifyOptions extends RxDeployment {
 	}
 
 	@Override
-	protected Observable<String> createContainer(Trace trace, ImageInstance<?> image) {
+	protected Observable<String> createContainer(Trace trace, Instance image) {
 		return this.docker.createContainer(trace, image, this);
 	}
 }

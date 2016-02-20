@@ -38,6 +38,6 @@ public class TagOverride {
 
 	@Override
 	public String toString() {
-		return "ExplicitTag(" + ", repository=" + repository+"name=" + name + ", tag=" + tag + ", explicitTag=" + explicitTag + ')';
+		return "TagOverride(" + ", repository=" + repository+"name=" + name + ", tag=" + tag + ", explicitTag=" + explicitTag + ')';
 	}
 }
