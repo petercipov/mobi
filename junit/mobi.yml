@@ -4,5 +4,4 @@ api:
       port: 2375
     
 override:
-    - pc.ubuntu.444: 500
-    - pc.ubuntu.44: 50
+    - cassandra.3.0.4: 500
